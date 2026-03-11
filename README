@@ -1,0 +1,215 @@
+# Smart Unit Converter
+
+A modern Android unit converter built with **Kotlin + Jetpack Compose**.
+The goal of this project is to create a **clean, intelligent converter** with features beyond typical calculator-style apps.
+
+---
+
+## Features
+
+### Core Conversion
+
+* Length, Weight, Speed categories
+* Unit selection with swap button
+* Real-time conversion while typing
+* Decimal numeric keyboard
+
+### Smart Input
+
+The converter intelligently parses pasted input:
+
+Examples supported:
+
+```
+15km
+15 km
+20 miles
+389kg
+```
+
+The app automatically:
+
+* Extracts the numeric value
+* Detects the unit
+* Switches category if necessary
+
+Example:
+
+```
+389kg
+```
+
+Becomes:
+
+```
+Input: 389
+Category: Weight
+From: kg
+```
+
+---
+
+### Nearby Conversion Table
+
+The app shows a smart nearby table around the input value.
+
+Example:
+
+```
+10 km = 6.21 mi
+
+Nearby conversions
+8 km = 4.97 mi
+9 km = 5.59 mi
+10 km = 6.21 mi
+11 km = 6.83 mi
+12 km = 7.45 mi
+```
+
+Features:
+
+* Adaptive step size
+* Works for small values (0.1)
+* Tap any value to auto-fill input
+
+---
+
+### Favorites
+
+Users can save frequently used conversions.
+
+```
+[ km→mi ]  [ kg→lb ]  [ m→ft ]
+```
+
+Features:
+
+* Horizontal chip layout
+* Tap to apply conversion
+* Long press to delete
+* Maximum 6 favorites
+
+---
+
+## Architecture
+
+The project uses a clean separation:
+
+```
+UI (Jetpack Compose)
+        ↓
+ViewModel
+        ↓
+UnitAliasResolver
+        ↓
+UnitRepository
+```
+
+Key components:
+
+* `ConverterViewModel` — application state
+* `UnitRepository` — unit definitions and categories
+* `UnitAliasResolver` — smart parsing for pasted text
+* Compose UI components
+
+---
+
+## Technology Stack
+
+* Kotlin
+* Jetpack Compose
+* Material3
+* MVVM architecture
+
+---
+
+## TODO (Next Features)
+
+### Natural Language Conversion
+
+Support inputs like:
+
+```
+15 km to miles
+100 kg in pounds
+32 f to c
+```
+
+The app should automatically detect:
+
+* value
+* source unit
+* target unit
+
+Example:
+
+```
+15 km to miles
+```
+
+Becomes:
+
+```
+Input = 15
+From = km
+To = miles
+```
+
+The parser should gracefully handle invalid input:
+
+```
+15 kms to xyz
+```
+
+Expected behavior:
+
+```
+Input = 15
+From = km
+To = unchanged
+```
+
+---
+
+### Persistence
+
+Add **DataStore** support for:
+
+* Favorite conversions
+* Last selected category
+* Last selected units
+
+---
+
+### UI Improvements
+
+* Category icons
+* Animated swap button
+* Snackbar for favorite removal
+* Chip highlighting for nearby conversions
+
+---
+
+## Future Ideas
+
+* Smart multi-unit display
+
+Example:
+
+```
+10 km
+
+= 6.21 miles
+= 10,000 meters
+= 32,808 feet
+```
+
+* Clipboard detection
+* Voice input
+
+---
+
+## License
+
+MIT
+
