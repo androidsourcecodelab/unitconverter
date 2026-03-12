@@ -20,13 +20,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
 import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver
@@ -54,19 +59,35 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
         CategoryGrid(viewModel)
 
         OutlinedTextField(
+            modifier = Modifier.fillMaxWidth(),
             value = viewModel.input,
+
             onValueChange = { newValue ->
 
                 val (numberPart, detectedUnit) =
                     UnitAliasResolver.parseInput(newValue)
 
-                // Guard: ignore input with no numeric part
-                //if (numberPart.isEmpty()) {
-
-
                 if (numberPart.isNotEmpty()) {
-                    // validate numeric part
-                    if (numberPart.matches(Regex("^\\d*\\.?\\d*$"))) {
+                    val valid = if (viewModel.selectedCategory.name == "Number Base") {
+
+                        when (viewModel.fromUnit.symbol) {
+
+                            "HEX" -> numberPart.matches(Regex("^[0-9A-Fa-f]*$"))
+
+                            "BIN" -> numberPart.matches(Regex("^[01]*$"))
+
+                            "OCT" -> numberPart.matches(Regex("^[0-7]*$"))
+
+                            "DEC" -> numberPart.matches(Regex("^\\d*$"))
+
+                            else -> false
+                        }
+
+                    } else {
+
+                        numberPart.matches(Regex("^\\d*\\.?\\d*$"))
+                    }
+                    if (valid) {
 
                         viewModel.input = numberPart
 
@@ -89,10 +110,31 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                     }
                 }
             },
-            label = { Text("Enter value") },
+            label = {
+                Text(
+                    text = "Enter value",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.Black,
+                    fontWeight = FontWeight.SemiBold
+                )
+            },
             singleLine = true,
+            textStyle = TextStyle(
+                color = Color.Black,
+                fontSize = 20.sp
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black,
+                cursorColor = MaterialTheme.colorScheme.primary,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal
+                keyboardType = if (viewModel.selectedCategory.name == "Number Base")
+                    KeyboardType.Ascii
+                else
+                    KeyboardType.Decimal
             ),
             trailingIcon = {
 

@@ -34,7 +34,6 @@ object UnitAliasResolver {
 
         val cleaned = text.trim().lowercase()
 
-        // Match: number + optional space + unit
         val regex = Regex("""^(\d*\.?\d+)\s*([a-zA-Z]+)?""")
 
         val match = regex.find(cleaned) ?: return Pair(text, null)
