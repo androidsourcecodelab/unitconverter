@@ -1,6 +1,7 @@
 package com.androidsourcecodelab.unitconverter.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -26,9 +27,11 @@ class FavoritesRepository(private val context: Context) {
 
     suspend fun loadFavorites(): List<FavoriteConversion> {
 
+
         val prefs = context.dataStore.data.first()
 
         val set = prefs[FAVORITES_KEY] ?: emptySet()
+        Log.d("FavoritesRepo", "Loaded favorites set: $set")
 
         return set.map {
 
