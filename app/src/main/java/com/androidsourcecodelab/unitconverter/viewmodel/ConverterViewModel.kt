@@ -18,6 +18,7 @@ import kotlin.math.log10
 import kotlin.math.pow
 
 class ConverterViewModel(application: Application) : ViewModel() {
+    val categories = UnitRepository.categories
     private val favoritesRepository =
         FavoritesRepository(application)
     var favorites by mutableStateOf(listOf<FavoriteConversion>())
@@ -149,5 +150,16 @@ class ConverterViewModel(application: Application) : ViewModel() {
         viewModelScope.launch {
             favoritesRepository.saveFavorites(favorites)
         }
+    }
+
+    fun setCategory(category: UnitCategory) {
+
+        selectedCategory = category
+
+        fromUnit = category.units.first()
+        toUnit = category.units[1]
+
+        input = ""
+        result = ""
     }
 }
