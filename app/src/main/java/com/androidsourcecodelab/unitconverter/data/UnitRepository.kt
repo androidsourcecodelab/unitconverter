@@ -3,11 +3,17 @@ package com.androidsourcecodelab.unitconverter.data
 import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
+import com.androidsourcecodelab.unitconverter.repository.categories.AngleCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.AreaCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.DataSizeCategory
+import com.androidsourcecodelab.unitconverter.repository.categories.EnergyCategory
+import com.androidsourcecodelab.unitconverter.repository.categories.FuelEconomyCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.LengthCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.NumberBaseCategory
+import com.androidsourcecodelab.unitconverter.repository.categories.PressureCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.SpeedCategory
+import com.androidsourcecodelab.unitconverter.repository.categories.TimeCategory
+import com.androidsourcecodelab.unitconverter.repository.categories.VolumeCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.WeightCategory
 
 object UnitRepository {
@@ -17,7 +23,13 @@ object UnitRepository {
 
 
     val categories = listOf(LengthCategory.category, WeightCategory.category, SpeedCategory.category, DataSizeCategory.category,
-        AreaCategory.category, NumberBaseCategory.category)
+        AreaCategory.category, NumberBaseCategory.category,
+        VolumeCategory.category,
+        TimeCategory.category,
+        PressureCategory.category,
+        AngleCategory.category,
+        EnergyCategory.category,
+        FuelEconomyCategory.category)
 
 
 

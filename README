@@ -1,215 +1,409 @@
-# Smart Unit Converter
+# Unit Converter App (Jetpack Compose)
 
-A modern Android unit converter built with **Kotlin + Jetpack Compose**.
-The goal of this project is to create a **clean, intelligent converter** with features beyond typical calculator-style apps.
+A modern Android **Unit Converter** built with **Kotlin + Jetpack Compose**.
+The goal of the project is to create a **clean, fast, offline utility converter** with useful UX features beyond typical converter apps.
 
 ---
 
-## Features
+# Current Features
 
-### Core Conversion
+## Core Conversion Engine
 
-* Length, Weight, Speed categories
-* Unit selection with swap button
-* Real-time conversion while typing
-* Decimal numeric keyboard
+Supports multiple categories using a **factor-based conversion system**.
 
-### Smart Input
-
-The converter intelligently parses pasted input:
-
-Examples supported:
+Conversion formula:
 
 ```
-15km
-15 km
-20 miles
-389kg
+base = input × from.factor
+result = base ÷ to.factor
 ```
 
-The app automatically:
+Except for **Number Base**, which uses custom logic.
 
-* Extracts the numeric value
-* Detects the unit
-* Switches category if necessary
+---
+
+# Supported Categories
+
+### Linear Conversions
+
+* Length
+* Weight
+* Temperature
+* Area
+* Speed
+* Volume
+* Time
+* Pressure
+* Angle
+* Energy
+* Fuel Economy
+
+### Special Categories
+
+* Data Size
+* Number Base (Decimal, Hex, Binary, Octal)
+
+---
+
+# UI Features
+
+## Category Selector
+
+Categories are displayed using a **horizontal scrollable chip bar**.
 
 Example:
 
 ```
-389kg
+[Length] [Weight] [Area] [Speed] [Volume] [Time] [Pressure] ...
 ```
 
-Becomes:
+Features:
+
+* Active category highlighted
+* Smooth category switching
+* Scales well as categories grow
+
+---
+
+# Input Field
+
+Input supports:
 
 ```
-Input: 389
-Category: Weight
-From: kg
+numeric values
+decimal numbers
+```
+
+Example:
+
+```
+10
+0.25
+1500
+```
+
+Input is normalized in the display:
+
+```
+098 → 98
+05.50 → 5.5
 ```
 
 ---
 
-### Nearby Conversion Table
+# Result Card
 
-The app shows a smart nearby table around the input value.
+Displays conversion result with emphasis on the converted value.
 
 Example:
 
 ```
 10 km = 6.21 mi
+```
 
+Uses formatted numbers:
+
+```
+#,###.####
+```
+
+For extreme values scientific notation is used:
+
+```
+8.49E-6
+```
+
+---
+
+# Nearby Conversions (Key Feature)
+
+Nearby conversions allow users to **explore values around the current input**.
+
+Example:
+
+```
 Nearby conversions
-8 km = 4.97 mi
-9 km = 5.59 mi
-10 km = 6.21 mi
-11 km = 6.83 mi
-12 km = 7.45 mi
+
+9 km  →  5.59 mi
+10 km →  6.21 mi
+11 km →  6.83 mi
 ```
 
 Features:
 
-* Adaptive step size
-* Works for small values (0.1)
-* Tap any value to auto-fill input
+* Scrollable list
+* Tap a row to update input
+* Center row corresponds to the current value
+* Rows have card-style backgrounds
+* Smart formatting
+
+Disabled for:
+
+```
+Number Base
+Data Size
+```
 
 ---
 
-### Favorites
+# Favorites System
 
-Users can save frequently used conversions.
+Users can store common conversions.
+
+Example favorites:
 
 ```
-[ km→mi ]  [ kg→lb ]  [ m→ft ]
+km → mi
+kg → lb
+m → ft
 ```
 
 Features:
 
-* Horizontal chip layout
-* Tap to apply conversion
+* Horizontal chips
+* Tap to activate conversion
 * Long press to delete
-* Maximum 6 favorites
+* Persistent across app restarts
 
----
-
-## Architecture
-
-The project uses a clean separation:
+Persistence implemented using:
 
 ```
-UI (Jetpack Compose)
-        ↓
-ViewModel
-        ↓
-UnitAliasResolver
-        ↓
-UnitRepository
+DataStore Preferences
 ```
 
-Key components:
+---
 
-* `ConverterViewModel` — application state
-* `UnitRepository` — unit definitions and categories
-* `UnitAliasResolver` — smart parsing for pasted text
-* Compose UI components
+# Smart Input Parsing
+
+Basic support for parsing pasted values.
+
+Example:
+
+```
+389kg
+15 km
+1024kb
+```
+
+The parser extracts:
+
+```
+number + unit
+```
+
+and configures the converter automatically.
 
 ---
 
-## Technology Stack
+# Number Formatting
 
-* Kotlin
-* Jetpack Compose
-* Material3
-* MVVM architecture
+Normal formatter:
+
+```
+DecimalFormat("#,###.####")
+```
+
+Scientific formatter:
+
+```
+DecimalFormat("0.####E0")
+```
+
+Used when:
+
+```
+value < 0.0001
+or
+value > 1,000,000
+```
 
 ---
 
-## TODO (Next Features)
+# Repository Architecture
 
-### Natural Language Conversion
+Conversion units are defined per category.
 
-Support inputs like:
+```
+repository/
+ ├─ UnitRepository.kt
+ └─ categories/
+     ├─ LengthCategory.kt
+     ├─ WeightCategory.kt
+     ├─ AreaCategory.kt
+     ├─ SpeedCategory.kt
+     ├─ VolumeCategory.kt
+     ├─ TimeCategory.kt
+     ├─ PressureCategory.kt
+     ├─ AngleCategory.kt
+     ├─ EnergyCategory.kt
+     ├─ FuelEconomyCategory.kt
+     ├─ DataSizeCategory.kt
+     └─ NumberBaseCategory.kt
+```
+
+---
+
+# Unit Lookup Optimization
+
+Unit lookup uses a map for fast resolution.
+
+```
+Map<String, Pair<UnitCategory, UnitItem>>
+```
+
+Used for:
+
+* smart input detection
+* favorites switching categories
+
+---
+
+# Nearby Value Generator
+
+Nearby values are generated relative to input.
+
+Example implementation:
+
+```
+input ± 1
+input ± 2
+```
+
+Future improvement: adaptive step size based on magnitude.
+
+---
+
+# UX Improvements Implemented
+
+* Scrollable category chips
+* Interactive nearby rows
+* Highlighted active category
+* Scientific formatting for large/small values
+* Favorites persistence
+* Cleaner number display
+* Scrollable nearby conversions
+
+---
+
+# Future Improvements (TODO)
+
+## Smart Expressions
+
+Allow inputs like:
 
 ```
 15 km to miles
-100 kg in pounds
-32 f to c
+100 kg to lb
+255 dec to hex
 ```
 
-The app should automatically detect:
+---
 
-* value
-* source unit
-* target unit
+## Adaptive Nearby Steps
+
+Improve nearby generation:
+
+Example:
+
+```
+0.5 → step 0.1
+50 → step 1
+5000 → step 10
+```
+
+---
+
+## Better Unit Aliases
+
+Support multiple input forms:
+
+```
+kmh → km/h
+kph → km/h
+lbs → lb
+acres → acre
+```
+
+---
+
+## Category Icons
+
+Add icons for category chips:
+
+```
+Length     📏
+Weight     ⚖️
+Area       🧱
+Speed      🚗
+Volume     🧪
+Time       ⏱
+Pressure   🧯
+Energy     ⚡
+```
+
+---
+
+## Expression Parser
+
+Full natural language conversion.
 
 Example:
 
 ```
 15 km to miles
-```
-
-Becomes:
-
-```
-Input = 15
-From = km
-To = miles
-```
-
-The parser should gracefully handle invalid input:
-
-```
-15 kms to xyz
-```
-
-Expected behavior:
-
-```
-Input = 15
-From = km
-To = unchanged
+5 acres to sqft
+1024 kb to mb
 ```
 
 ---
 
-### Persistence
+## UI Polish
 
-Add **DataStore** support for:
-
-* Favorite conversions
-* Last selected category
-* Last selected units
-
----
-
-### UI Improvements
-
-* Category icons
-* Animated swap button
-* Snackbar for favorite removal
-* Chip highlighting for nearby conversions
+* subtle animations on category switch
+* better section headers
+* improved spacing on small screens
+* ripple feedback improvements
 
 ---
 
-## Future Ideas
+# Long-Term Ideas
 
-* Smart multi-unit display
+Possible future features:
 
-Example:
+* currency conversion (API based)
+* shoe size converter
+* cooking measurements
+* scientific constants
+* calculator-style conversion history
+
+---
+
+# Tech Stack
 
 ```
-10 km
-
-= 6.21 miles
-= 10,000 meters
-= 32,808 feet
+Kotlin
+Jetpack Compose
+Material 3
+Android DataStore
+MVVM Architecture
 ```
-
-* Clipboard detection
-* Voice input
 
 ---
 
-## License
+# Goal of the Project
 
-MIT
+Create a **clean, lightweight, professional converter app** that is:
+
+* fast
+* offline-first
+* simple UI
+* powerful input handling
+* extensible architecture
+
+---
+
+# Development Status
+
+Core functionality is **complete and stable**.
+Current focus is **UX improvements and feature expansion**.
 

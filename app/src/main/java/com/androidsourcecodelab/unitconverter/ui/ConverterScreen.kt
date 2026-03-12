@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -49,7 +51,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
             style = MaterialTheme.typography.headlineMedium
         )
 
-        CategoryDropdown(viewModel)
+        CategoryGrid(viewModel)
 
         OutlinedTextField(
             value = viewModel.input,
@@ -167,54 +169,79 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
         if (viewModel.input.isNotEmpty()) {
 
             val inputValue = viewModel.input.toDoubleOrNull()
-            if (viewModel.selectedCategory.type== ConverterType.LINEAR && viewModel.selectedCategory.name!=("Data Size")) {
+
+            if (
+                viewModel.selectedCategory.type == ConverterType.LINEAR &&
+                viewModel.selectedCategory.name != "Data Size"
+            ) {
 
                 if (inputValue != null) {
 
                     val nearbyValues = viewModel.generateNearbyValues(inputValue)
+
                     Column(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = "Nearby conversions",
-                            style = MaterialTheme.typography.titleMedium
-                        )
 
-                        nearbyValues.forEach { value ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                .padding(vertical = 6.dp, horizontal = 12.dp)
+                        ) {
 
-                            val base = value * viewModel.fromUnit.factor
-                            val converted = base / viewModel.toUnit.factor
+                            Text(
+                                text = "Nearby conversions",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                    .clickable {
-
-                                        viewModel.input = viewModel.formatter.format(value)
-                                        viewModel.convert()
-
-                                    }
-                                    .padding(vertical = 6.dp)
-                            ) {
-
-                                Text(
-                                    text = "${viewModel.formatNumber(value)} ${viewModel.fromUnit.symbol} = " +
-                                            "${viewModel.formatNumber(converted)} ${viewModel.toUnit.symbol}",
-                                    modifier = Modifier.clickable {
-
-                                        viewModel.input = viewModel.formatter.format(value)
-                                        viewModel.convert()
-
-                                    }
-
-                                )
-                            }// end of text
                         }
+
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+
+                            items(nearbyValues) { value ->
+
+                                val base = value * viewModel.fromUnit.factor
+                                val converted = base / viewModel.toUnit.factor
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                        .clickable {
+
+                                            viewModel.input = viewModel.formatter.format(value)
+                                            viewModel.convert()
+
+                                        }
+                                        .padding(vertical = 6.dp)
+                                ) {
+
+                                    Text(
+                                        text = "${viewModel.formatNumber(value)} ${viewModel.fromUnit.symbol} = " +
+                                                "${viewModel.formatNumber(converted)} ${viewModel.toUnit.symbol}",
+                                        modifier = Modifier.padding(horizontal = 12.dp),
+                                        color = MaterialTheme.colorScheme.onSurface
+
+                                    )
+
+                                }
+
+                            }
+
+                        }
+
                     }
-                } // end of if
+
+                }
+
             }
+
         }
 
     }
