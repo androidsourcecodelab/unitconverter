@@ -1,18 +1,24 @@
 package com.androidsourcecodelab.unitconverter.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import java.text.DecimalFormat
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.androidsourcecodelab.unitconverter.FavoriteConversion
+import com.androidsourcecodelab.unitconverter.data.FavoritesRepository
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
+import kotlinx.coroutines.launch
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
 
-class ConverterViewModel : ViewModel() {
+class ConverterViewModel(application: Application) : ViewModel() {
+    private val favoritesRepository =
+        FavoritesRepository(application)
     var favorites by mutableStateOf(listOf<FavoriteConversion>())
     public val formatter = DecimalFormat("#,###.####")
 
@@ -23,6 +29,16 @@ class ConverterViewModel : ViewModel() {
 
     var fromUnit by mutableStateOf(selectedCategory.units.first())
     var toUnit by mutableStateOf(selectedCategory.units[1])
+
+    init {
+
+        viewModelScope.launch {
+
+            favorites =
+                favoritesRepository.loadFavorites()
+
+        }
+    }
 
 
     fun convert() {
@@ -76,18 +92,26 @@ class ConverterViewModel : ViewModel() {
     fun addFavorite() {
 
         val favorite = FavoriteConversion(
-            from = fromUnit.symbol,
-            to = toUnit.symbol
+            fromUnit.symbol,
+            toUnit.symbol
         )
 
         if (!favorites.contains(favorite)) {
 
             favorites = (favorites + favorite).takeLast(6)
 
+            viewModelScope.launch {
+                favoritesRepository.saveFavorites(favorites)
+            }
         }
     }
 
     fun removeFavorite(favorite: FavoriteConversion) {
+
         favorites = favorites - favorite
+
+        viewModelScope.launch {
+            favoritesRepository.saveFavorites(favorites)
+        }
     }
 }

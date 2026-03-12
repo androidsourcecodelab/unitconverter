@@ -25,6 +25,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
+import com.androidsourcecodelab.unitconverter.data.UnitRepository
 import kotlin.collections.find
 
 @Composable
@@ -86,15 +87,21 @@ fun ResultCard(viewModel: ConverterViewModel) {
                     AssistChip(
                         onClick = {
 
-                            val from = viewModel.selectedCategory.units
-                                .find { it.symbol == fav.from }
+                            val fromResult =
+                                UnitRepository.findUnitAcrossCategories(fav.from)
 
-                            val to = viewModel.selectedCategory.units
-                                .find { it.symbol == fav.to }
+                            val toResult =
+                                UnitRepository.findUnitAcrossCategories(fav.to)
 
-                            if (from != null && to != null) {
-                                viewModel.fromUnit = from
-                                viewModel.toUnit = to
+                            if (fromResult != null && toResult != null) {
+
+                                val (category, fromUnit) = fromResult
+                                val toUnit = toResult.second
+
+                                viewModel.selectedCategory = category
+                                viewModel.fromUnit = fromUnit
+                                viewModel.toUnit = toUnit
+
                                 viewModel.convert()
                             }
 
