@@ -40,10 +40,14 @@ fun ResultCard(viewModel: ConverterViewModel) {
     ) {
 
         if (viewModel.input.isNotEmpty()) {
+            val cleanInput =
+                viewModel.input.toDoubleOrNull()?.let {
+                    viewModel.formatNumber(it)
+                } ?: viewModel.input
 
             val resultText = buildAnnotatedString {
 
-                append("${viewModel.input} ${viewModel.fromUnit.symbol} = ")
+                append("$cleanInput ${viewModel.fromUnit.symbol} = ")
 
                 withStyle(
                     style = SpanStyle(

@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.androidsourcecodelab.unitconverter.FavoriteConversion
 import com.androidsourcecodelab.unitconverter.data.FavoritesRepository
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
+import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import kotlinx.coroutines.launch
 import kotlin.math.floor
@@ -21,6 +22,8 @@ class ConverterViewModel(application: Application) : ViewModel() {
         FavoritesRepository(application)
     var favorites by mutableStateOf(listOf<FavoriteConversion>())
     public val formatter = DecimalFormat("#,###.####")
+    private val scientificFormatter =
+        DecimalFormat("0.###E0")
 
     var input by mutableStateOf("")
     var result by mutableStateOf("")
@@ -42,6 +45,10 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
 
     fun convert() {
+        if (selectedCategory.type == ConverterType.NUMBER_BASE) {
+            convertNumberBase()
+            return
+        }
 
         val value = input.toDoubleOrNull() ?: run {
             result = ""
@@ -51,7 +58,35 @@ class ConverterViewModel(application: Application) : ViewModel() {
         val base = value * fromUnit.factor
         val output = base / toUnit.factor
 
-        result = formatter.format(output)
+        result = formatNumber(output)
+    }
+
+    fun formatNumber(value: Double): String {
+
+        val abs = kotlin.math.abs(value)
+
+        return if (abs >= 1_000_000 || abs <= 0.001 && abs != 0.0) {
+            scientificFormatter.format(value)
+        } else {
+            formatter.format(value)
+        }
+    }
+
+    fun convertNumberBase() {
+
+        val value = input.toIntOrNull() ?: return
+
+        result = when (toUnit.symbol) {
+
+            "HEX" -> value.toString(16).uppercase()
+
+            "BIN" -> value.toString(2)
+
+            "OCT" -> value.toString(8)
+
+            else -> value.toString()
+
+        }
     }
 
     fun changeCategory(category: UnitCategory) {
@@ -74,6 +109,7 @@ class ConverterViewModel(application: Application) : ViewModel() {
     }
 
     fun generateNearbyValues(value: Double): List<Double> {
+
 
         if (value == 0.0) return emptyList()
 
