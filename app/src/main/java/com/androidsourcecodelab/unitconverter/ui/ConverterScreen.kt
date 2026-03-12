@@ -26,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
+import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver
 import com.androidsourcecodelab.unitconverter.viewmodel.ConverterViewModel
 import com.yourpackage.unitconverter.ui.UnitDropdown
@@ -166,51 +167,53 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
         if (viewModel.input.isNotEmpty()) {
 
             val inputValue = viewModel.input.toDoubleOrNull()
+            if (viewModel.selectedCategory.type== ConverterType.LINEAR && viewModel.selectedCategory.name!=("Data Size")) {
 
-            if (inputValue != null) {
+                if (inputValue != null) {
 
-                val nearbyValues = viewModel.generateNearbyValues(inputValue)
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = "Nearby conversions",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    nearbyValues.forEach { value ->
-
-                        val base = value * viewModel.fromUnit.factor
-                        val converted = base / viewModel.toUnit.factor
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                .clickable {
-
-                                    viewModel.input = viewModel.formatter.format(value)
-                                    viewModel.convert()
-
-                                }
-                                .padding(vertical = 6.dp)
-                        ) {
-
+                    val nearbyValues = viewModel.generateNearbyValues(inputValue)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
                         Text(
-                            text = "${viewModel.formatter.format(value)} ${viewModel.fromUnit.symbol} = " +
-                                    "${viewModel.formatter.format(converted)} ${viewModel.toUnit.symbol}",
-                            modifier = Modifier.clickable {
-
-                                viewModel.input = viewModel.formatter.format(value)
-                                viewModel.convert()
-
-                            }
-
+                            text = "Nearby conversions",
+                            style = MaterialTheme.typography.titleMedium
                         )
-                        }// end of text
+
+                        nearbyValues.forEach { value ->
+
+                            val base = value * viewModel.fromUnit.factor
+                            val converted = base / viewModel.toUnit.factor
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    .clickable {
+
+                                        viewModel.input = viewModel.formatter.format(value)
+                                        viewModel.convert()
+
+                                    }
+                                    .padding(vertical = 6.dp)
+                            ) {
+
+                                Text(
+                                    text = "${viewModel.formatNumber(value)} ${viewModel.fromUnit.symbol} = " +
+                                            "${viewModel.formatNumber(converted)} ${viewModel.toUnit.symbol}",
+                                    modifier = Modifier.clickable {
+
+                                        viewModel.input = viewModel.formatter.format(value)
+                                        viewModel.convert()
+
+                                    }
+
+                                )
+                            }// end of text
+                        }
                     }
-                }
+                } // end of if
             }
         }
 
