@@ -7,6 +7,7 @@ object AreaCategory {
 
     val category = UnitCategory(
         name = "Area",
+        "Area",
         units = listOf(
             UnitItem("Square meter", "m²", 1.0),
             UnitItem("Square kilometer", "km²", 1_000_000.0),

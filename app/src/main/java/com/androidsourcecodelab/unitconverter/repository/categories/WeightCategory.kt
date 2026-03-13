@@ -7,6 +7,7 @@ object WeightCategory {
 
     val category = UnitCategory(
         name = "Weight",
+        iconLabel = "Weight",
         units = listOf(
             UnitItem("Milligram", "mg", 0.000001),
             UnitItem("Gram", "g", 0.001),

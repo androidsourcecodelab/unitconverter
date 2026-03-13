@@ -7,6 +7,7 @@ object DataSizeCategory {
 
     val category = UnitCategory(
         name = "Data Size",
+        iconLabel = "Data",
         units = listOf(
             UnitItem("Byte", "B", 1.0),
             UnitItem("Kilobyte", "KB", 1024.0),

@@ -7,6 +7,7 @@ object EnergyCategory {
 
     val category = UnitCategory(
         name = "Energy",
+        iconLabel = "Energy",
         units = listOf(
             UnitItem("Joule", "J", 1.0),
             UnitItem("Kilojoule", "kJ", 1000.0),

@@ -4,18 +4,16 @@ import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
 
-object NumberBaseCategory {
+object TemperatureCategory {
 
     val category = UnitCategory(
-        name = "Number Base",
-        type = ConverterType.NUMBER_BASE,
-        iconLabel = "Base",
+        name = "Temperature",
+        iconLabel = "Temp",
+        type = ConverterType.TEMPERATURE,
         units = listOf(
-            UnitItem("Decimal", "DEC", 1.0),
-            UnitItem("Hexadecimal", "HEX", 1.0),
-            UnitItem("Binary", "BIN", 1.0),
-            UnitItem("Octal", "OCT", 1.0)
+            UnitItem("Celsius", "°C", 1.0),
+            UnitItem("Fahrenheit", "°F", 1.0),
+            UnitItem("Kelvin", "K", 1.0)
         )
     )
-
 }
