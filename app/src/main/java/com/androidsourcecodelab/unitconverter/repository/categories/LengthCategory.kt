@@ -7,6 +7,7 @@ object LengthCategory {
 
     val category = UnitCategory(
         name = "Length",
+        iconLabel = "Length",
         units = listOf(
             UnitItem("Meter", "m", 1.0),
             UnitItem("Kilometer", "km", 1000.0),

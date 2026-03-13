@@ -7,6 +7,7 @@ object FuelEconomyCategory {
 
     val category = UnitCategory(
         name = "Fuel Economy",
+        iconLabel = "Fuel",
         units = listOf(
             UnitItem("Kilometers per liter", "km/L", 1.0),
             UnitItem("Miles per gallon (US)", "mpg", 0.425144),

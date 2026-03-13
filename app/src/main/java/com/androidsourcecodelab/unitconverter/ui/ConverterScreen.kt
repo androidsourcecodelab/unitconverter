@@ -131,10 +131,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                 unfocusedContainerColor = Color.White
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = if (viewModel.selectedCategory.name == "Number Base")
-                    KeyboardType.Ascii
-                else
-                    KeyboardType.Decimal
+                keyboardType = KeyboardType.Decimal
             ),
             trailingIcon = {
 

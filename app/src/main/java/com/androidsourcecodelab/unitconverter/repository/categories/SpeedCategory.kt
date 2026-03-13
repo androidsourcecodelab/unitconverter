@@ -7,6 +7,7 @@ object SpeedCategory {
 
     val category = UnitCategory(
         name = "Speed",
+        iconLabel = "Speed",
         units = listOf(
             UnitItem("Meters per second", "m/s", 1.0),
             UnitItem("Kilometers per hour", "km/h", 0.277778),

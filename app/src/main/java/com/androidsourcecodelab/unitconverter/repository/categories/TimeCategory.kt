@@ -7,6 +7,7 @@ object TimeCategory {
 
     val category = UnitCategory(
         name = "Time",
+        iconLabel = "Time",
         units = listOf(
             UnitItem("Millisecond", "ms", 0.001),
             UnitItem("Second", "s", 1.0),

@@ -7,6 +7,7 @@ object PressureCategory {
 
     val category = UnitCategory(
         name = "Pressure",
+        iconLabel =  "Pres",
         units = listOf(
             UnitItem("Pascal", "Pa", 1.0),
             UnitItem("Kilopascal", "kPa", 1000.0),

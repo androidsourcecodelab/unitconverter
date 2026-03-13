@@ -36,8 +36,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
-import com.androidsourcecodelab.unitconverter.data.UnitRepository
-import kotlin.collections.find
+import androidx.compose.ui.text.style.TextOverflow
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -74,10 +74,12 @@ fun ResultCard(viewModel: ConverterViewModel) {
 
             Text(
                 text = resultText,
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.titleLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
                 textAlign = TextAlign.Center
             )
         }

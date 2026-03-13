@@ -34,7 +34,7 @@ object UnitAliasResolver {
 
         val cleaned = text.trim().lowercase()
 
-        val regex = Regex("""^(\d*\.?\d+)\s*([a-zA-Z]+)?""")
+        val regex = Regex("""^(\d*\.?\d*)\s*([a-zA-Z]+)?""")
 
         val match = regex.find(cleaned) ?: return Pair(text, null)
 

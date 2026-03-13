@@ -9,6 +9,7 @@ object VolumeCategory {
 
     val category = UnitCategory(
         name = "Volume",
+        iconLabel = "Volume",
         units = listOf(
             UnitItem("Milliliter", "ml", 0.001),
             UnitItem("Liter", "L", 1.0),
