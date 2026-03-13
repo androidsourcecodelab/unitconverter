@@ -1,651 +1,364 @@
-# Input Parsing and Number Base Conversion – Known Issues & Planned Fixes
+# Unit Converter (Android)
 
-## Overview
+A fast and simple Android unit converter built with **Kotlin + Jetpack Compose**.
 
-Recent changes introduced support for **Number Base conversions (DEC, HEX, BIN, OCT)** and **unit parsing from free text input**.
-However, several issues remain in the current implementation.
+The app supports multiple unit categories, smart unit detection (e.g. `12 km`), nearby conversions, and a clean grid-based category selector with icons.
 
-This document summarizes the problems and outlines the fixes required.
-
----
-
-# 1. Current Input Processing Pipeline
-
-Current flow:
-
-```
-TextField input
-   ↓
-UnitAliasResolver.parseInput()
-   ↓
-Regex validation
-   ↓
-viewModel.input updated
-   ↓
-convert()
-```
-
-Problems arise because the pipeline assumes **decimal numeric input**, while Number Base conversions require **base-specific parsing**.
+This project is designed with a **simple layered architecture** so new categories and features can be added easily.
 
 ---
 
-# 2. Known Issues
+# Features
 
-## 2.1 Decimal input not accepted for non-NumberBase categories
+### Core Features
 
-Examples that should work but currently fail:
-
-```
-12.5
-0.25
-.5
-```
-
-Likely causes:
-
-* validation using `numberPart` instead of raw input
-* decimal point removed by parsing logic
-* incorrect regex conditions
+* Convert between common unit categories
+* Real-time conversion as you type
+* Clean **category grid UI with icons**
+* **Nearby conversions** (shows 4 related conversions)
+* Compact **result card**
+* **Temperature conversions**
+* **Astronomy conversions**
+* Smart input parsing (e.g. `12 km`)
+* Supports decimals (e.g. `1.25 km`)
 
 ---
 
-## 2.2 Number Base input partially broken
+# Supported Categories
+
+Current categories include:
+
+* Length
+* Weight
+* Speed
+* Area
+* Volume
+* Time
+* Pressure
+* Energy
+* Temperature
+* Astronomy
+* Angle
+* Fuel Economy
+
+(Some categories may be temporarily disabled in the repository list.)
+
+---
+
+# Example Conversions
+
+```
+12 km → miles
+5 AU → light years
+100 °C → Fahrenheit
+60 mph → km/h
+```
+
+---
+
+# Smart Input Parsing
+
+The input parser can detect units directly from text.
 
 Examples:
 
 ```
-HEX → DEC
-A → should return 10
+12 km
+5 au
+1.5 kg
 ```
 
-Current behavior:
+When a unit is detected:
+
+* The category switches automatically
+* The correct conversion units are selected
+
+Currently supported parsing:
 
 ```
-A → result empty
-```
-
-Cause:
-
-* `parseInput()` only supports decimal-style numbers
-* base conversion requires different parsing logic
-
----
-
-## 2.3 Switching number bases retains invalid input
-
-Example workflow:
-
-```
-356 (OCT)
-switch to BIN
-switch to DEC
-```
-
-Input remains:
-
-```
-356
-```
-
-Which is invalid for the new base.
-
-Expected behavior:
-
-```
-input = ""
-result = ""
-```
-
-when the base changes.
-
----
-
-## 2.4 Binary / Hex output formatted with commas
-
-Example incorrect formatting:
-
-```
-101,011,001
-```
-
-Expected output:
-
-```
-101011001
-```
-
-Binary, Hex, and Octal should **never be formatted with DecimalFormat**.
-
----
-
-# 3. Required Fixes
-
-## 3.1 Skip `parseInput()` for Number Base category
-
-```
-val (numberPart, detectedUnit) =
-    if (viewModel.selectedCategory.type == ConverterType.NUMBER_BASE)
-        Pair(newValue, null)
-    else
-        UnitAliasResolver.parseInput(newValue)
-```
-
-Reason:
-
-`parseInput()` assumes decimal numbers and breaks HEX/BIN inputs.
-
----
-
-## 3.2 Base-specific input validation
-
-Validation should depend on the **selected base**.
-
-```
-HEX → [0-9A-Fa-f]
-BIN → [01]
-OCT → [0-7]
-DEC → [0-9]
+<number> <unit>
 ```
 
 Example:
 
 ```
-when (fromUnit.symbol) {
-
-    "HEX" -> Regex("^[0-9A-Fa-f]*$")
-    "BIN" -> Regex("^[01]*$")
-    "OCT" -> Regex("^[0-7]*$")
-    "DEC" -> Regex("^\\d*$")
-
-}
+12 km
 ```
 
-Other categories:
+Future versions may support:
 
 ```
-Regex("^\\d*\\.?\\d*$")
+12 km to miles
+5 au in km
 ```
 
 ---
 
-## 3.3 Centralize base conversions
+# UI Overview
 
-Create a utility:
-
-```
-BaseConverter.kt
-```
-
-Responsibilities:
-
-* parse input by base
-* convert to target base
-* format output without commas
-
----
-
-## 3.4 Clear input when base changes
-
-When user changes:
+Main UI components:
 
 ```
-fromUnit
-toUnit
-selectedCategory
-```
-
-Reset state:
-
-```
-input = ""
-result = ""
-```
-
-This prevents invalid input carry-over.
-
----
-
-## 3.5 Prevent formatting for base conversions
-
-```
-if (selectedCategory.type != ConverterType.NUMBER_BASE) {
-    result = formatter.format(value)
-}
-```
-
----
-
-# 4. Future Improvements
-
-## 4.1 Smarter number base detection
-
-Support prefixes:
-
-```
-0xFF → HEX
-0b1010 → BIN
-0755 → OCT
-```
-
----
-
-## 4.2 Allow unit parsing without space
-
-Current parser expects:
-
-```
-10 km
-```
-
-Future improvement:
-
-```
-10km
-5kg
-12m
-```
-
----
-
-## 4.3 Improve parseInput() regex
-
-Safer pattern:
-
-```
-^(\d+(?:\.\d*)?|\.\d+)\s*([a-zA-Z]+)?
-```
-
-Supports:
-
-```
-12
-12.5
-.5
-10 km
-```
-
----
-
-# 5. Current Status
-
-| Feature        | Status            |
-| -------------- | ----------------- |
-| Decimal input  | broken            |
-| HEX input      | partially working |
-| BIN input      | partially working |
-| OCT input      | partially working |
-| Base switching | needs reset logic |
-| Formatting     | needs fix         |
-
----
-
-# 6. Next Steps
-
-1. Implement `BaseConverter.kt`
-2. Skip `parseInput()` for Number Base
-3. Fix validation logic
-4. Reset input when base changes
-5. Disable formatting for base conversions
-
-
-
-# Application Architecture
-
-## Overview
-
-The Unit Converter app is built using **Jetpack Compose**, **MVVM architecture**, and a **data-driven unit repository**.
-
-The goal is to keep:
-
-* UI simple
-* conversion logic centralized
-* categories easily extensible
-
----
-
-# High Level Architecture
-
-```id="archflow"
-UI (Compose Screens)
-        ↓
-ViewModel (State + Logic)
-        ↓
-UnitRepository (Unit definitions)
-        ↓
-Converters / Utilities
-        ↓
-DataStore (Favorites persistence)
-```
-
----
-
-# Core Components
-
-## 1. UI Layer (Jetpack Compose)
-
-Main responsibilities:
-
-* rendering input fields
-* displaying conversion results
-* category and unit selection
-* favorites UI
-* nearby conversions
-
-Key UI elements:
-
-```id="ui-components"
 ConverterScreen
-ResultCard
-FavoritesRow
-NearbyConversions
-CategoryGrid
+ ├─ CategoryGrid
+ │   └─ CategoryTile
+ ├─ ResultCard
+ └─ NearbyConversions
 ```
 
-Important behaviors:
-
-* Text input validation
-* auto-conversion on input change
-* favorites selection
-* favorites deletion
+The UI is implemented fully with **Jetpack Compose**.
 
 ---
 
-# 2. ViewModel Layer
+# Architecture
 
-The ViewModel holds the **entire state of the converter screen**.
+The project follows a simple layered structure:
 
-Example state:
-
-```id="vm-state"
-selectedCategory
-fromUnit
-toUnit
-input
-result
-favorites
 ```
+UI
+ ├─ MainActivity
+ ├─ ConverterScreen
+ ├─ CategoryGrid
+ ├─ CategoryTile
+ └─ ResultCard
 
-Main responsibilities:
+ViewModel
+ └─ ConverterViewModel
+      ├─ convert()
+      ├─ convertTemperature()
+      └─ generateNearbyValues()
 
-* manage state updates
-* trigger conversions
-* apply favorites
-* load and persist favorites
+Domain Models
+ ├─ UnitCategory
+ └─ UnitItem
 
-Primary methods:
+Repository
+ └─ UnitRepository
+      └─ Category definitions
+           ├─ LengthCategory
+           ├─ WeightCategory
+           ├─ SpeedCategory
+           ├─ AreaCategory
+           ├─ VolumeCategory
+           ├─ TimeCategory
+           ├─ PressureCategory
+           ├─ EnergyCategory
+           ├─ TemperatureCategory
+           └─ AstronomyCategory
 
-```id="vm-methods"
-convert()
-addFavorite()
-removeFavorite()
-applyFavorite()
-```
-
----
-
-# 3. Repository Layer
-
-Repositories provide **unit definitions and persistence**.
-
-## UnitRepository
-
-Contains all supported unit categories.
-
-Example structure:
-
-```id="repo-structure"
-LengthCategory
-MassCategory
-TemperatureCategory
-NumberBaseCategory
-```
-
-Each category defines:
-
-```id="category-definition"
-UnitCategory(
-    name = "Length",
-    units = listOf(...)
-)
-```
-
-Unit structure:
-
-```id="unit-structure"
-UnitItem(
-    name = "Kilometer",
-    symbol = "km",
-    multiplier = 1000.0
-)
+Utilities
+ └─ UnitAliasResolver
 ```
 
 ---
 
-# 4. Conversion Engine
+# Conversion Logic
 
-Conversion logic currently follows this model:
+### Linear Conversions
 
-```id="conversion-flow"
-input value
-   ↓
-convert to base unit
-   ↓
-convert to target unit
-   ↓
-format result
+Most categories use simple linear conversions.
+
 ```
-
-For most categories:
-
-```id="conversion-formula"
-result = input * fromUnit.multiplier / toUnit.multiplier
+baseValue = input × fromUnit.factor
+result = baseValue / toUnit.factor
 ```
-
-Special converters are required for:
-
-* Temperature
-* Number Base
-
----
-
-# 5. Number Base Conversion
-
-Handled separately from standard unit conversions.
-
-Supported bases:
-
-```id="bases"
-DEC
-HEX
-BIN
-OCT
-```
-
-Future improvements include moving all logic into:
-
-```id="planned-class"
-BaseConverter.kt
-```
-
-Responsibilities:
-
-* parse base input
-* convert to decimal
-* convert to target base
-* format output
-
----
-
-# 6. Input Parsing
-
-User input can include units.
-
-Examples supported:
-
-```id="input-examples"
-10 km
-5kg
-100 m
-```
-
-Parsing is handled by:
-
-```id="parser"
-UnitAliasResolver.parseInput()
-```
-
-Responsibilities:
-
-* extract numeric value
-* detect unit alias
-* update category and units automatically
-
----
-
-# 7. Favorites System
-
-Favorites allow users to store frequently used conversions.
 
 Example:
 
-```id="favorite-example"
-km → miles
-kg → lb
 ```
-
-UI representation:
-
-```id="favorite-ui"
-AssistChip
-```
-
-Features:
-
-* tap → apply conversion
-* tap X → delete favorite
-* maximum 5 favorites
-
----
-
-# 8. Data Persistence
-
-Favorites are stored using **Jetpack DataStore**.
-
-Repository:
-
-```id="favorites-repo"
-FavoritesRepository
-```
-
-Storage format:
-
-```id="storage-format"
-Set<String>
-```
-
-Example stored values:
-
-```id="favorites-storage"
-km|mi
-kg|lb
+km → m → miles
 ```
 
 ---
 
-# 9. Nearby Conversions
+### Temperature Conversion
 
-The Nearby Conversions feature shows **commonly used unit pairs** related to the selected category.
+Temperature requires formulas rather than multipliers.
+
+Conversions are done via **Celsius as the intermediate unit**.
+
+```
+C → F = C × 9/5 + 32
+F → C = (F − 32) × 5/9
+K → C = K − 273.15
+```
+
+---
+
+# Nearby Conversions
+
+When a conversion is performed:
+
+* The main result is displayed in the **ResultCard**
+* Four additional conversions are generated
 
 Example:
 
-```id="nearby-example"
-km → m
-m → cm
-km → miles
+```
+12 km = 7.456 miles
+
+Nearby
+12000 meters
+0.012 megameters
+39370 feet
+13123 yards
 ```
 
-Purpose:
-
-* reduce unit selection friction
-* encourage quick conversions
+The main result is **excluded from the nearby list**.
 
 ---
 
-# Design Principles
+# Category Grid
 
-### 1. Data-driven categories
-
-Adding a new category should require **minimal code changes**.
+Categories are displayed in a **3-column grid** with icons.
 
 Example:
 
-```id="new-category"
-SpeedCategory.kt
+```
+Length   Weight   Speed
+Area     Volume   Time
+Energy   Temp     Astro
+```
+
+Each category tile contains:
+
+```
+Icon + Short Label
 ```
 
 ---
 
-### 2. Stateless UI
+# Project Structure
 
-Compose UI should reflect **ViewModel state only**.
-
----
-
-### 3. Separation of concerns
-
-| Layer      | Responsibility       |
-| ---------- | -------------------- |
-| UI         | Rendering            |
-| ViewModel  | State + logic        |
-| Repository | Unit data            |
-| Utilities  | Parsing / conversion |
-
----
-
-# Future Enhancements
-
-### Smart Input
-
-Support expressions like:
-
-```id="future-input"
-10km
-5kg
-32f
+```
+app
+ ├─ data
+ │   ├─ UnitRepository.kt
+ │   └─ FavoritesRepository.kt
+ │
+ ├─ model
+ │   ├─ UnitCategory.kt
+ │   └─ UnitItem.kt
+ │
+ ├─ repository
+ │   └─ categories
+ │        ├─ LengthCategory.kt
+ │        ├─ WeightCategory.kt
+ │        ├─ SpeedCategory.kt
+ │        ├─ AreaCategory.kt
+ │        ├─ VolumeCategory.kt
+ │        ├─ TimeCategory.kt
+ │        ├─ PressureCategory.kt
+ │        ├─ EnergyCategory.kt
+ │        ├─ TemperatureCategory.kt
+ │        └─ AstronomyCategory.kt
+ │
+ ├─ ui
+ │   ├─ ConverterScreen.kt
+ │   ├─ CategoryGrid.kt
+ │   ├─ CategoryDropdown.kt
+ │   └─ ResultCard.kt
+ │
+ └─ MainActivity.kt
 ```
 
 ---
 
-### Auto Base Detection
+# Planned Features
 
-Example:
+Future improvements planned for the app:
 
-```id="auto-base"
-0xFF → HEX
-0b1010 → BIN
-0755 → OCT
+### Smart Parsing
+
+```
+12 km to miles
+5 au in km
+```
+
+Automatic detection of **both source and destination units**.
+
+---
+
+### Copy Result to Clipboard
+
+Add a quick copy button to the result card.
+
+---
+
+### Fun Conversion Facts
+
+Add interesting comparisons for certain categories.
+
+Examples:
+
+**Length**
+
+```
+10000 meters
+≈ 1.13 Mount Everests
+```
+
+**Astronomy**
+
+```
+384,400 km
+≈ 1 Earth–Moon distance
+```
+
+These will appear below the result card.
+
+---
+
+### Improved Result Formatting
+
+Cleaner number formatting:
+
+```
+32
+26.85
+273.15
+```
+
+instead of:
+
+```
+32.000000
 ```
 
 ---
 
-### Animated UI
+# Development Notes
 
-Potential UI improvements:
+The architecture is intentionally simple so new categories can be added easily.
 
-* animated favorites removal
-* animated nearby conversions
-* animated result updates
+To add a new category:
+
+1. Create a category file under:
+
+```
+repository/categories
+```
+
+2. Define units using `UnitItem`
+
+3. Add the category to:
+
+```
+UnitRepository
+```
 
 ---
 
-# Summary
+# Tech Stack
 
-The architecture ensures:
+* Kotlin
+* Jetpack Compose
+* Material 3
+* MVVM Architecture
 
-* modular unit definitions
-* clear separation of logic
-* extensible category system
-* maintainable codebase
+---
 
-The project is designed to support **many additional categories and features with minimal refactoring**.
+# License
+
+Open for learning and experimentation.
 
