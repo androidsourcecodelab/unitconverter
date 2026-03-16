@@ -1,364 +1,388 @@
-# Unit Converter (Android)
+Smart Unit Converter
 
-A fast and simple Android unit converter built with **Kotlin + Jetpack Compose**.
+A fast, single-screen Android unit converter built with Jetpack Compose.
+The app focuses on speed, simplicity, and intelligent input parsing, allowing users to convert units quickly without navigating multiple screens.
 
-The app supports multiple unit categories, smart unit detection (e.g. `12 km`), nearby conversions, and a clean grid-based category selector with icons.
+Overview
 
-This project is designed with a **simple layered architecture** so new categories and features can be added easily.
+Smart Unit Converter provides conversions across many measurement categories with a minimal UI and smart input handling.
 
----
+Key design principles:
 
-# Features
+Single screen interaction
 
-### Core Features
+Fast unit switching
 
-* Convert between common unit categories
-* Real-time conversion as you type
-* Clean **category grid UI with icons**
-* **Nearby conversions** (shows 4 related conversions)
-* Compact **result card**
-* **Temperature conversions**
-* **Astronomy conversions**
-* Smart input parsing (e.g. `12 km`)
-* Supports decimals (e.g. `1.25 km`)
+Smart parsing of pasted values (e.g. 12 km, 5mph)
 
----
+Nearby conversion suggestions
 
-# Supported Categories
+Favorites for frequently used conversions
 
-Current categories include:
+Educational fun facts
 
-* Length
-* Weight
-* Speed
-* Area
-* Volume
-* Time
-* Pressure
-* Energy
-* Temperature
-* Astronomy
-* Angle
-* Fuel Economy
+Features
+Core Conversion
 
-(Some categories may be temporarily disabled in the repository list.)
+Supports multiple measurement categories including:
 
----
+Length
 
-# Example Conversions
+Weight / Mass
 
-```
-12 km → miles
-5 AU → light years
-100 °C → Fahrenheit
-60 mph → km/h
-```
+Area
 
----
+Volume
 
-# Smart Input Parsing
+Speed
 
-The input parser can detect units directly from text.
+Temperature
 
-Examples:
+Duration
 
-```
+Pressure
+
+Angle
+
+Energy
+
+Power
+
+Density
+
+Frequency
+
+Fuel Economy
+
+Astronomy
+
+Each category defines its units and conversion factors.
+
+Smart Input Parsing
+
+The converter accepts inputs such as:
+
 12 km
-5 au
-1.5 kg
-```
+5mph
+-40 C
+12kms
 
-When a unit is detected:
+The parser extracts:
 
-* The category switches automatically
-* The correct conversion units are selected
+value
+unit symbol
 
-Currently supported parsing:
+and automatically selects the correct From Unit.
 
-```
-<number> <unit>
-```
+Negative Value Handling
+
+Negative values are allowed only for categories where they make sense.
+
+Allowed:
+
+Temperature
+
+Angle
+
+Not allowed:
+
+Length
+
+Weight
+
+Volume
+
+Pressure
+
+Energy
+
+Power
+
+Density
+
+Frequency
+
+Fuel economy
+
+Astronomy
+
+Duration
+
+Input validation is dynamically controlled by the category.
+
+Nearby Conversion Suggestions
+
+For a given input value, nearby values are generated to help users explore quick conversions.
 
 Example:
 
-```
+Input: 100 km
+
+Nearby values:
+80 km
+90 km
+110 km
+120 km
+
+The step size scales automatically with the order of magnitude of the value.
+
+Favorites
+
+Users can store up to 6 favorite conversions for quick access.
+
+Examples:
+
+km → miles
+kg → lb
+C → F
+
+Favorites are stored locally.
+
+Fun Facts
+
+For certain categories (currently length), the app displays contextual fun facts.
+
+Example:
+
+Did you know?
+Mount Everest is about 8848 meters tall.
+
+These references are implemented using:
+
+ReferenceItem
+ReferenceEngine
+LengthReferences
+Clipboard Friendly Input
+
+Users can paste values directly from other apps:
+
 12 km
-```
+5mph
+-40 C
 
-Future versions may support:
+The parser automatically resolves unit aliases such as:
 
-```
-12 km to miles
-5 au in km
-```
+km
+kms
+kilometer
+kilometers
+Architecture
 
----
+The project follows a simple MVVM structure.
 
-# UI Overview
+UI Layer (Jetpack Compose)
 
-Main UI components:
+Handles rendering and user interaction.
 
-```
+Typical components:
+
+CategoryGrid
+UnitDropdown
+ResultCard
 ConverterScreen
- ├─ CategoryGrid
- │   └─ CategoryTile
- ├─ ResultCard
- └─ NearbyConversions
-```
 
-The UI is implemented fully with **Jetpack Compose**.
+Responsibilities:
 
----
+Display categories
 
-# Architecture
+Unit selection
 
-The project follows a simple layered structure:
+Input handling
 
-```
-UI
- ├─ MainActivity
- ├─ ConverterScreen
- ├─ CategoryGrid
- ├─ CategoryTile
- └─ ResultCard
+Display results
 
-ViewModel
- └─ ConverterViewModel
-      ├─ convert()
-      ├─ convertTemperature()
-      └─ generateNearbyValues()
+Show nearby conversions
 
-Domain Models
- ├─ UnitCategory
- └─ UnitItem
+Display fun facts
 
-Repository
- └─ UnitRepository
-      └─ Category definitions
-           ├─ LengthCategory
-           ├─ WeightCategory
-           ├─ SpeedCategory
-           ├─ AreaCategory
-           ├─ VolumeCategory
-           ├─ TimeCategory
-           ├─ PressureCategory
-           ├─ EnergyCategory
-           ├─ TemperatureCategory
-           └─ AstronomyCategory
+ViewModel Layer
+ConverterViewModel
 
-Utilities
- └─ UnitAliasResolver
-```
+Responsibilities:
 
----
+Conversion logic
 
-# Conversion Logic
+Input parsing
 
-### Linear Conversions
+Validation
 
-Most categories use simple linear conversions.
+Managing UI state
 
-```
-baseValue = input × fromUnit.factor
-result = baseValue / toUnit.factor
-```
+Favorites management
+
+Nearby value generation
+
+Data Layer
+
+Handles repositories and unit storage.
+
+FavoritesRepository
+UnitRepository
+
+Responsibilities:
+
+Category definitions
+
+Unit lookup
+
+Favorite storage
+
+Model Layer
+UnitItem
+
+Represents a unit.
 
 Example:
 
-```
-km → m → miles
-```
+UnitItem(
+    name = "Kilometer",
+    symbol = "km",
+    factor = 1000.0
+)
+UnitCategory
 
----
-
-### Temperature Conversion
-
-Temperature requires formulas rather than multipliers.
-
-Conversions are done via **Celsius as the intermediate unit**.
-
-```
-C → F = C × 9/5 + 32
-F → C = (F − 32) × 5/9
-K → C = K − 273.15
-```
-
----
-
-# Nearby Conversions
-
-When a conversion is performed:
-
-* The main result is displayed in the **ResultCard**
-* Four additional conversions are generated
+Represents a group of units.
 
 Example:
 
-```
-12 km = 7.456 miles
+UnitCategory(
+    name = "Length",
+    units = [...]
+)
 
-Nearby
-12000 meters
-0.012 megameters
-39370 feet
-13123 yards
-```
+Includes a flag:
 
-The main result is **excluded from the nearby list**.
+allowNegative
 
----
+which controls input validation rules.
 
-# Category Grid
+Unit Categories
 
-Categories are displayed in a **3-column grid** with icons.
-
-Example:
-
-```
-Length   Weight   Speed
-Area     Volume   Time
-Energy   Temp     Astro
-```
-
-Each category tile contains:
-
-```
-Icon + Short Label
-```
-
----
-
-# Project Structure
-
-```
-app
- ├─ data
- │   ├─ UnitRepository.kt
- │   └─ FavoritesRepository.kt
- │
- ├─ model
- │   ├─ UnitCategory.kt
- │   └─ UnitItem.kt
- │
- ├─ repository
- │   └─ categories
- │        ├─ LengthCategory.kt
- │        ├─ WeightCategory.kt
- │        ├─ SpeedCategory.kt
- │        ├─ AreaCategory.kt
- │        ├─ VolumeCategory.kt
- │        ├─ TimeCategory.kt
- │        ├─ PressureCategory.kt
- │        ├─ EnergyCategory.kt
- │        ├─ TemperatureCategory.kt
- │        └─ AstronomyCategory.kt
- │
- ├─ ui
- │   ├─ ConverterScreen.kt
- │   ├─ CategoryGrid.kt
- │   ├─ CategoryDropdown.kt
- │   └─ ResultCard.kt
- │
- └─ MainActivity.kt
-```
-
----
-
-# Planned Features
-
-Future improvements planned for the app:
-
-### Smart Parsing
-
-```
-12 km to miles
-5 au in km
-```
-
-Automatic detection of **both source and destination units**.
-
----
-
-### Copy Result to Clipboard
-
-Add a quick copy button to the result card.
-
----
-
-### Fun Conversion Facts
-
-Add interesting comparisons for certain categories.
+Categories are defined separately for modularity.
 
 Examples:
 
-**Length**
+LengthCategory
+WeightCategory
+TemperatureCategory
+SpeedCategory
+EnergyCategory
+PowerCategory
+DensityCategory
+FrequencyCategory
+FuelEconomyCategory
+AstronomyCategory
 
-```
-10000 meters
-≈ 1.13 Mount Everests
-```
+Each category defines:
 
-**Astronomy**
+Unit names
 
-```
-384,400 km
-≈ 1 Earth–Moon distance
-```
+Symbols
 
-These will appear below the result card.
+Conversion factors
 
----
+Input Parsing
 
-### Improved Result Formatting
+Parsing uses regular expressions.
 
-Cleaner number formatting:
+Supported formats:
 
-```
-32
-26.85
-273.15
-```
+12 km
+12kms
+5mph
+-40 C
 
-instead of:
+The parser extracts:
 
-```
-32.000000
-```
+numeric value
+unit alias
 
----
+Aliases are resolved through a mapping table.
 
-# Development Notes
+Recent Bug Fixes
+Negative Temperature Support
 
-The architecture is intentionally simple so new categories can be added easily.
+Temperature conversions now correctly support negative values:
 
-To add a new category:
+-40 C
+-273.15 C
+Unit Parsing Fix
 
-1. Create a category file under:
+Inputs such as:
 
-```
-repository/categories
-```
+12kms
+5mph
 
-2. Define units using `UnitItem`
+are now correctly parsed.
 
-3. Add the category to:
+Nearby Value Generation Fix
 
-```
-UnitRepository
-```
+Nearby value generation now works correctly with negative values.
 
----
+Adaptive Launcher Icon Fix
 
-# Tech Stack
+Resolved launcher icon issues by regenerating the icon using Android Studio's Image Asset tool, ensuring proper adaptive icon behavior.
 
-* Kotlin
-* Jetpack Compose
-* Material 3
-* MVVM Architecture
+Project Structure
+app
+ ├ data
+ ├ model
+ ├ repository
+ │   └ categories
+ ├ reference
+ ├ ui
+ │   └ theme
+ ├ util
+ └ viewmodel
+Future Improvements
 
----
+Planned improvements include smarter parsing and additional convenience features.
 
-# License
+Natural Language Conversion
 
-Open for learning and experimentation.
+Allow input like:
 
+12 km to miles
+
+The parser will automatically detect both source and destination units.
+
+Compound Unit Parsing
+
+Support inputs such as:
+
+5 ft 3 in
+6'2"
+
+Useful for height conversions.
+
+Clipboard Detection
+
+Detect convertible values from clipboard when the app opens.
+
+Example:
+
+Clipboard detected: 12 km
+Tap to convert
+More Reference Comparisons
+
+Add contextual comparisons for other categories such as:
+
+Speed
+
+Astronomy
+
+Energy
+
+Tech Stack
+
+Kotlin
+
+Jetpack Compose
+
+MVVM architecture
+
+Gradle (Kotlin DSL)
+
+License
+
+This project is open source for educational and experimentation purposes.
