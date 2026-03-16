@@ -5,7 +5,8 @@ data class UnitCategory(
     val name: String,
     val iconLabel: String,
     val units: List<UnitItem>,
-    val type: ConverterType = ConverterType.LINEAR
+    val type: ConverterType = ConverterType.LINEAR,
+    val allowNegative: Boolean = false
 )
 
 enum class ConverterType {

@@ -38,9 +38,7 @@ import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver
 import com.androidsourcecodelab.unitconverter.viewmodel.ConverterViewModel
 import com.yourpackage.unitconverter.ui.UnitDropdown
 
-class ConverterScreen {
 
-}
 @Composable
 fun ConverterScreen(viewModel: ConverterViewModel) {
 
@@ -52,7 +50,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
     ) {
 
         Text(
-            text = "Unit Converter",
+            text = "Smart Unit Converter",
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -85,7 +83,13 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
 
                     } else {
 
-                        numberPart.matches(Regex("^\\d*\\.?\\d*$"))
+                        val regex = if (viewModel.selectedCategory.allowNegative) {
+                            Regex("""^-?\d*\.?\d*$""")
+                        } else {
+                            Regex("""^\d*\.?\d*$""")
+                        }
+
+                        numberPart.matches(regex)
                     }
                     if (valid) {
 
@@ -231,7 +235,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                         ) {
 
                             Text(
-                                text = "Nearby conversions",
+                                text = "Quick conversions",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )

@@ -14,7 +14,11 @@ import com.androidsourcecodelab.unitconverter.data.FavoritesRepository
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
 import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
+import com.androidsourcecodelab.unitconverter.reference.ReferenceItem
+import com.androidsourcecodelab.unitconverter.reference.findReference
+import com.androidsourcecodelab.unitconverter.repository.categories.LengthCategory
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
@@ -31,6 +35,9 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
     var input by mutableStateOf("")
     var result by mutableStateOf("")
+
+    var reference by mutableStateOf<ReferenceItem?>(null)
+        private set
 
     var selectedCategory by mutableStateOf(UnitRepository.categories.first())
 
@@ -62,6 +69,15 @@ class ConverterViewModel(application: Application) : ViewModel() {
             return
         }
         val base = value * fromUnit.factor
+
+        reference = if (
+            selectedCategory.name == LengthCategory.category.name &&
+            fromUnit.symbol == "m"
+        ) {
+            findReference(base, LengthReferences.items)
+        } else {
+            null
+        }
         val output = base / toUnit.factor
 
         result = formatNumber(output)
@@ -124,10 +140,9 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
     fun generateNearbyValues(value: Double): List<Double> {
 
-
         if (value == 0.0) return emptyList()
 
-        val magnitude = 10.0.pow(floor(log10(value)))
+        val magnitude = 10.0.pow(floor(log10(abs(value))))
         val step = magnitude / 10
 
         return listOf(
@@ -135,9 +150,8 @@ class ConverterViewModel(application: Application) : ViewModel() {
             value - step,
             value + step,
             value + 2 * step
-        ).filter { it >= 0 }
+        )
     }
-
     fun addFavorite() {
         Log.d("FavoritesRepo adding ",fromUnit.symbol+","+toUnit.symbol)
         if (favorites.size >= 5) return

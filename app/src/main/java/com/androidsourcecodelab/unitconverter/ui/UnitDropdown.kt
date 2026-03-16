@@ -28,7 +28,7 @@ fun UnitDropdown(
             units.forEach { unit ->
 
                 DropdownMenuItem(
-                    text = { Text(unit.name) },
+                    text = { Text("${unit.symbol} — ${unit.name}")  },
                     onClick = {
                         onSelected(unit)
                         expanded = false
