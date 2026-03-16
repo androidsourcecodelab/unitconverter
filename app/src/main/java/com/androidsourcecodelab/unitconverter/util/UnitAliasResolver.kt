@@ -34,17 +34,21 @@ object UnitAliasResolver {
 
         val cleaned = text.trim().lowercase()
 
-        val regex = Regex("""^(\d*\.?\d*)\s*([a-zA-Z]+)?""")
+        val regex = Regex("""^(-?\d*\.?\d+)\s*([a-zA-Z]+)?""")
 
         val match = regex.find(cleaned) ?: return Pair(text, null)
 
         val numberPart = match.groupValues[1]
+
+        if (numberPart == "-" || numberPart.isEmpty()) {
+            return Pair("", null)
+        }
+
         val unitPart = match.groupValues.getOrNull(2)
 
         val resolved = unitPart?.let { aliases[it] }
 
         return Pair(numberPart, resolved)
     }
-
 
 }

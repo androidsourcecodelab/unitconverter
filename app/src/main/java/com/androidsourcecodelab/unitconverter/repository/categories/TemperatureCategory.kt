@@ -14,6 +14,7 @@ object TemperatureCategory {
             UnitItem("Celsius", "°C", 1.0),
             UnitItem("Fahrenheit", "°F", 1.0),
             UnitItem("Kelvin", "K", 1.0)
-        )
+        ),
+        allowNegative = true
     )
 }

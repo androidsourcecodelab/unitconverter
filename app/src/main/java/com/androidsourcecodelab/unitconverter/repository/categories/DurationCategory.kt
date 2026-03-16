@@ -3,11 +3,11 @@ package com.androidsourcecodelab.unitconverter.repository.categories
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
 
-object TimeCategory {
+object DurationCategory {
 
     val category = UnitCategory(
-        name = "Time",
-        iconLabel = "Time",
+        name = "Duration",
+        iconLabel = "Dur",
         units = listOf(
             UnitItem("Millisecond", "ms", 0.001),
             UnitItem("Second", "s", 1.0),

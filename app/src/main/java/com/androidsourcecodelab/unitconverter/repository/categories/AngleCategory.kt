@@ -10,10 +10,11 @@ object AngleCategory {
         name = "Angle",
         iconLabel="Angle",
         units = listOf(
-            UnitItem("Degree", "deg", 1.0),
-            UnitItem("Radian", "rad", 57.2958),
-            UnitItem("Grad", "grad", 0.9)
-        )
+            UnitItem("Degree", "degree", 1.0),
+            UnitItem("Radian", "radian", 57.2958),
+            UnitItem("Grad", "gradient", 0.9)
+        ),
+        allowNegative = true
     )
 
 }
