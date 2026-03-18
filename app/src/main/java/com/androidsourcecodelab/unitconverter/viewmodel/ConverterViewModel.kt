@@ -9,11 +9,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.androidsourcecodelab.unitconverter.FavoriteConversion
-import com.androidsourcecodelab.unitconverter.data.BaseConverter
 import com.androidsourcecodelab.unitconverter.data.FavoritesRepository
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
 import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
+import com.androidsourcecodelab.unitconverter.reference.LengthReferences
 import com.androidsourcecodelab.unitconverter.reference.ReferenceItem
 import com.androidsourcecodelab.unitconverter.reference.findReference
 import com.androidsourcecodelab.unitconverter.repository.categories.LengthCategory
