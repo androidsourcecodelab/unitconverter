@@ -6,13 +6,15 @@ data class UnitCategory(
     val iconLabel: String,
     val units: List<UnitItem>,
     val type: ConverterType = ConverterType.LINEAR,
-    val allowNegative: Boolean = false
+    val allowNegative: Boolean = false,
+    val supportsNearby: Boolean = true
 )
 
 enum class ConverterType {
     LINEAR,
     NUMBER_BASE,
-    TEMPERATURE
+    TEMPERATURE,
+    STORAGE
 }
 
 

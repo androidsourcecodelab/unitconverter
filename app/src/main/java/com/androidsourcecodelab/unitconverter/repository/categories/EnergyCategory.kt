@@ -9,12 +9,19 @@ object EnergyCategory {
         name = "Energy",
         iconLabel = "Energy",
         units = listOf(
-            UnitItem("Joule", "J", 1.0),
-            UnitItem("Kilojoule", "kJ", 1000.0),
-            UnitItem("Calorie", "cal", 4.184),
-            UnitItem("Kilocalorie", "kcal", 4184.0),
-            UnitItem("Watt hour", "Wh", 3600.0),
-            UnitItem("Kilowatt hour", "kWh", 3_600_000.0)
+            UnitItem("Joule", "J", 1.0, "energy"),
+
+            UnitItem("Kilojoule", "kJ", 1000.0, "energy"),
+            UnitItem("Calorie", "cal", 4.184, "energy"),
+            UnitItem("Kilocalorie", "kcal", 4184.0, "energy"),
+
+            UnitItem("Watt-hour", "Wh", 3600.0, "energy"),
+            UnitItem("Kilowatt-hour", "kWh", 3_600_000.0, "energy"),
+
+            UnitItem("Electronvolt", "eV", 1.602176634e-19, "energy"),
+            UnitItem("British Thermal Unit", "BTU", 1055.06, "energy"),
+
+            UnitItem("Foot-pound", "ft·lb", 1.35582, "energy")
         )
     )
 

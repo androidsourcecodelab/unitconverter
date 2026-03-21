@@ -1,0 +1,388 @@
+Smart Unit Converter
+
+A fast, single-screen Android unit converter built with Jetpack Compose.
+The app focuses on speed, simplicity, and intelligent input parsing, allowing users to convert units quickly without navigating multiple screens.
+
+Overview
+
+Smart Unit Converter provides conversions across many measurement categories with a minimal UI and smart input handling.
+
+Key design principles:
+
+Single screen interaction
+
+Fast unit switching
+
+Smart parsing of pasted values (e.g. 12 km, 5mph)
+
+Nearby conversion suggestions
+
+Favorites for frequently used conversions
+
+Educational fun facts
+
+Features
+Core Conversion
+
+Supports multiple measurement categories including:
+
+Length
+
+Weight / Mass
+
+Area
+
+Volume
+
+Speed
+
+Temperature
+
+Duration
+
+Pressure
+
+Angle
+
+Energy
+
+Power
+
+Density
+
+Frequency
+
+Fuel Economy
+
+Astronomy
+
+Each category defines its units and conversion factors.
+
+Smart Input Parsing
+
+The converter accepts inputs such as:
+
+12 km
+5mph
+-40 C
+12kms
+
+The parser extracts:
+
+value
+unit symbol
+
+and automatically selects the correct From Unit.
+
+Negative Value Handling
+
+Negative values are allowed only for categories where they make sense.
+
+Allowed:
+
+Temperature
+
+Angle
+
+Not allowed:
+
+Length
+
+Weight
+
+Volume
+
+Pressure
+
+Energy
+
+Power
+
+Density
+
+Frequency
+
+Fuel economy
+
+Astronomy
+
+Duration
+
+Input validation is dynamically controlled by the category.
+
+Nearby Conversion Suggestions
+
+For a given input value, nearby values are generated to help users explore quick conversions.
+
+Example:
+
+Input: 100 km
+
+Nearby values:
+80 km
+90 km
+110 km
+120 km
+
+The step size scales automatically with the order of magnitude of the value.
+
+Favorites
+
+Users can store up to 6 favorite conversions for quick access.
+
+Examples:
+
+km → miles
+kg → lb
+C → F
+
+Favorites are stored locally.
+
+Fun Facts
+
+For certain categories (currently length), the app displays contextual fun facts.
+
+Example:
+
+Did you know?
+Mount Everest is about 8848 meters tall.
+
+These references are implemented using:
+
+ReferenceItem
+ReferenceEngine
+LengthReferences
+Clipboard Friendly Input
+
+Users can paste values directly from other apps:
+
+12 km
+5mph
+-40 C
+
+The parser automatically resolves unit aliases such as:
+
+km
+kms
+kilometer
+kilometers
+Architecture
+
+The project follows a simple MVVM structure.
+
+UI Layer (Jetpack Compose)
+
+Handles rendering and user interaction.
+
+Typical components:
+
+CategoryGrid
+UnitDropdown
+ResultCard
+ConverterScreen
+
+Responsibilities:
+
+Display categories
+
+Unit selection
+
+Input handling
+
+Display results
+
+Show nearby conversions
+
+Display fun facts
+
+ViewModel Layer
+ConverterViewModel
+
+Responsibilities:
+
+Conversion logic
+
+Input parsing
+
+Validation
+
+Managing UI state
+
+Favorites management
+
+Nearby value generation
+
+Data Layer
+
+Handles repositories and unit storage.
+
+FavoritesRepository
+UnitRepository
+
+Responsibilities:
+
+Category definitions
+
+Unit lookup
+
+Favorite storage
+
+Model Layer
+UnitItem
+
+Represents a unit.
+
+Example:
+
+UnitItem(
+    name = "Kilometer",
+    symbol = "km",
+    factor = 1000.0
+)
+UnitCategory
+
+Represents a group of units.
+
+Example:
+
+UnitCategory(
+    name = "Length",
+    units = [...]
+)
+
+Includes a flag:
+
+allowNegative
+
+which controls input validation rules.
+
+Unit Categories
+
+Categories are defined separately for modularity.
+
+Examples:
+
+LengthCategory
+WeightCategory
+TemperatureCategory
+SpeedCategory
+EnergyCategory
+PowerCategory
+DensityCategory
+FrequencyCategory
+FuelEconomyCategory
+AstronomyCategory
+
+Each category defines:
+
+Unit names
+
+Symbols
+
+Conversion factors
+
+Input Parsing
+
+Parsing uses regular expressions.
+
+Supported formats:
+
+12 km
+12kms
+5mph
+-40 C
+
+The parser extracts:
+
+numeric value
+unit alias
+
+Aliases are resolved through a mapping table.
+
+Recent Bug Fixes
+Negative Temperature Support
+
+Temperature conversions now correctly support negative values:
+
+-40 C
+-273.15 C
+Unit Parsing Fix
+
+Inputs such as:
+
+12kms
+5mph
+
+are now correctly parsed.
+
+Nearby Value Generation Fix
+
+Nearby value generation now works correctly with negative values.
+
+Adaptive Launcher Icon Fix
+
+Resolved launcher icon issues by regenerating the icon using Android Studio's Image Asset tool, ensuring proper adaptive icon behavior.
+
+Project Structure
+app
+ ├ data
+ ├ model
+ ├ repository
+ │   └ categories
+ ├ reference
+ ├ ui
+ │   └ theme
+ ├ util
+ └ viewmodel
+Future Improvements
+
+Planned improvements include smarter parsing and additional convenience features.
+
+Natural Language Conversion
+
+Allow input like:
+
+12 km to miles
+
+The parser will automatically detect both source and destination units.
+
+Compound Unit Parsing
+
+Support inputs such as:
+
+5 ft 3 in
+6'2"
+
+Useful for height conversions.
+
+Clipboard Detection
+
+Detect convertible values from clipboard when the app opens.
+
+Example:
+
+Clipboard detected: 12 km
+Tap to convert
+More Reference Comparisons
+
+Add contextual comparisons for other categories such as:
+
+Speed
+
+Astronomy
+
+Energy
+
+Tech Stack
+
+Kotlin
+
+Jetpack Compose
+
+MVVM architecture
+
+Gradle (Kotlin DSL)
+
+License
+
+This project is open source for educational and experimentation purposes.

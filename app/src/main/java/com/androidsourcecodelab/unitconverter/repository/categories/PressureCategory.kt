@@ -9,11 +9,20 @@ object PressureCategory {
         name = "Pressure",
         iconLabel =  "Pres",
         units = listOf(
-            UnitItem("Pascal", "Pa", 1.0),
-            UnitItem("Kilopascal", "kPa", 1000.0),
-            UnitItem("Bar", "bar", 100000.0),
-            UnitItem("Atmosphere", "atm", 101325.0),
-            UnitItem("PSI", "psi", 6894.76)
+            UnitItem("Pascal", "Pa", 1.0, "pressure"),
+
+            UnitItem("Kilopascal", "kPa", 1e3, "pressure"),
+            UnitItem("Megapascal", "MPa", 1e6, "pressure"),
+
+            UnitItem("Bar", "bar", 1e5, "pressure"),
+            UnitItem("Millibar", "mbar", 100.0, "pressure"),
+
+            UnitItem("Atmosphere", "atm", 101325.0, "pressure"),
+
+            UnitItem("Pounds per square inch", "psi", 6894.76, "pressure"),
+
+            UnitItem("Torr", "Torr", 133.322, "pressure"),
+            UnitItem("Millimeter of mercury", "mmHg", 133.322, "pressure")
         )
     )
 

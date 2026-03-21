@@ -9,11 +9,14 @@ object FrequencyCategory {
         name = "Frequency",
         iconLabel = "Freq",
         units = listOf(
-            UnitItem("Hertz", "Hz", 1.0),
-            UnitItem("Kilohertz", "kHz", 1000.0),
-            UnitItem("Megahertz", "MHz", 1_000_000.0),
-            UnitItem("Gigahertz", "GHz", 1_000_000_000.0),
-            UnitItem("Revolutions per minute", "RPM", 0.0166667)
+            UnitItem("Hertz", "Hz", 1.0, "frequency"),
+
+            UnitItem("Kilohertz", "kHz", 1e3, "frequency"),
+            UnitItem("Megahertz", "MHz", 1e6, "frequency"),
+            UnitItem("Gigahertz", "GHz", 1e9, "frequency"),
+
+            UnitItem("Revolutions per minute", "rpm", 1.0 / 60.0, "frequency"),
+            UnitItem("Radians per second", "rad/s", 1.0 / (2 * Math.PI), "frequency")
         )
     )
 }

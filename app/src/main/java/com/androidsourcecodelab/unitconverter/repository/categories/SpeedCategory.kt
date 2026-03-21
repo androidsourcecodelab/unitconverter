@@ -9,11 +9,14 @@ object SpeedCategory {
         name = "Speed",
         iconLabel = "Speed",
         units = listOf(
-            UnitItem("Meters per second", "m/s", 1.0),
-            UnitItem("Kilometers per hour", "km/h", 0.277778),
-            UnitItem("Miles per hour", "mph", 0.44704),
-            UnitItem("Knots", "kt", 0.514444),
-            UnitItem("Feet per second", "ft/s", 0.3048)
+            UnitItem("Meter per second", "m/s", 1.0, "speed"),
+
+            UnitItem("Kilometer per hour", "km/h", 0.277778, "speed"),
+            UnitItem("Miles per hour", "mph", 0.44704, "speed"),
+
+            UnitItem("Foot per second", "ft/s", 0.3048, "speed"),
+
+            UnitItem("Knot", "kt", 0.514444, "speed")
         )
     )
 

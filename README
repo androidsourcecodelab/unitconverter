@@ -1,388 +1,447 @@
-Smart Unit Converter
+Here’s a **clean, GitHub-ready README**—polished, structured, and ready to drop into your repo (`README.md`).
 
-A fast, single-screen Android unit converter built with Jetpack Compose.
-The app focuses on speed, simplicity, and intelligent input parsing, allowing users to convert units quickly without navigating multiple screens.
+---
 
-Overview
+# 📱 Unit Converter
 
-Smart Unit Converter provides conversions across many measurement categories with a minimal UI and smart input handling.
+A **modern, extensible unit converter** built with **Kotlin + Jetpack Compose**, designed using **Clean Architecture**, **Strategy Pattern**, and a **deterministic execution model**.
 
-Key design principles:
+---
 
-Single screen interaction
+## ✨ Features
 
-Fast unit switching
+* 🔢 Manual conversion (numeric input)
+* 🧠 NLP-based conversion (`12 km to miles`)
+* ⚙️ Strategy-based conversion engine
+* ✅ Validator-driven input system
+* 🎯 Deterministic UX (no hidden computation)
+* ⚡ Quick nearby conversions
+* ⭐ Favorites support
+* 📋 Copy to clipboard
 
-Smart parsing of pasted values (e.g. 12 km, 5mph)
+---
 
-Nearby conversion suggestions
+## 🧭 Philosophy
 
-Favorites for frequently used conversions
+> **UI is dumb. Logic is pluggable. Execution is explicit.**
 
-Educational fun facts
+* No auto-conversion while typing
+* No hidden recomputation
+* No ambiguous parsing
 
-Features
-Core Conversion
+---
 
-Supports multiple measurement categories including:
+## 🏗️ Architecture
 
-Length
+```
+User Input (UI)
+        ↓
+ViewModel (orchestration)
+        ↓
+Parser (NLP / manual)
+        ↓
+Validator (category rules)
+        ↓
+Conversion Strategy
+        ↓
+Format Strategy
+        ↓
+UI Rendering
+```
 
-Weight / Mass
+---
 
-Area
+## 🧱 Core Components
 
-Volume
+---
 
-Speed
+### 📦 Models
 
-Temperature
+#### `UiState`
 
-Duration
-
-Pressure
-
-Angle
-
-Energy
-
-Power
-
-Density
-
-Frequency
-
-Fuel Economy
-
-Astronomy
-
-Each category defines its units and conversion factors.
-
-Smart Input Parsing
-
-The converter accepts inputs such as:
-
-12 km
-5mph
--40 C
-12kms
-
-The parser extracts:
-
-value
-unit symbol
-
-and automatically selects the correct From Unit.
-
-Negative Value Handling
-
-Negative values are allowed only for categories where they make sense.
-
-Allowed:
-
-Temperature
-
-Angle
-
-Not allowed:
-
-Length
-
-Weight
-
-Volume
-
-Pressure
-
-Energy
-
-Power
-
-Density
-
-Frequency
-
-Fuel economy
-
-Astronomy
-
-Duration
-
-Input validation is dynamically controlled by the category.
-
-Nearby Conversion Suggestions
-
-For a given input value, nearby values are generated to help users explore quick conversions.
-
-Example:
-
-Input: 100 km
-
-Nearby values:
-80 km
-90 km
-110 km
-120 km
-
-The step size scales automatically with the order of magnitude of the value.
-
-Favorites
-
-Users can store up to 6 favorite conversions for quick access.
-
-Examples:
-
-km → miles
-kg → lb
-C → F
-
-Favorites are stored locally.
-
-Fun Facts
-
-For certain categories (currently length), the app displays contextual fun facts.
-
-Example:
-
-Did you know?
-Mount Everest is about 8848 meters tall.
-
-These references are implemented using:
-
-ReferenceItem
-ReferenceEngine
-LengthReferences
-Clipboard Friendly Input
-
-Users can paste values directly from other apps:
-
-12 km
-5mph
--40 C
-
-The parser automatically resolves unit aliases such as:
-
-km
-kms
-kilometer
-kilometers
-Architecture
-
-The project follows a simple MVVM structure.
-
-UI Layer (Jetpack Compose)
-
-Handles rendering and user interaction.
-
-Typical components:
-
-CategoryGrid
-UnitDropdown
-ResultCard
-ConverterScreen
-
-Responsibilities:
-
-Display categories
-
-Unit selection
-
-Input handling
-
-Display results
-
-Show nearby conversions
-
-Display fun facts
-
-ViewModel Layer
-ConverterViewModel
-
-Responsibilities:
-
-Conversion logic
-
-Input parsing
-
-Validation
-
-Managing UI state
-
-Favorites management
-
-Nearby value generation
-
-Data Layer
-
-Handles repositories and unit storage.
-
-FavoritesRepository
-UnitRepository
-
-Responsibilities:
-
-Category definitions
-
-Unit lookup
-
-Favorite storage
-
-Model Layer
-UnitItem
-
-Represents a unit.
-
-Example:
-
-UnitItem(
-    name = "Kilometer",
-    symbol = "km",
-    factor = 1000.0
+```kotlin
+data class UiState(
+    val rawInputText: String,
+    val parsedValue: String,
+    val result: String,
+    val fromUnit: UnitItem?,
+    val toUnit: UnitItem?,
+    val category: UnitCategory?,
+    val parsedCommand: ParsedCommand?,
+    val errorMessage: String?
 )
-UnitCategory
+```
 
-Represents a group of units.
+---
 
-Example:
+#### `ParsedCommand`
 
-UnitCategory(
-    name = "Length",
-    units = [...]
+```kotlin
+data class ParsedCommand(
+    val rawInput: String,
+    val value: String,
+    val fromUnit: UnitItem,
+    val toUnit: UnitItem,
+    val category: UnitCategory
 )
+```
 
-Includes a flag:
+---
 
-allowNegative
+#### `UnitCategory`
 
-which controls input validation rules.
+* Defines:
 
-Unit Categories
+  * converter type (LINEAR / TEMPERATURE / NUMBER_BASE)
+  * supported units
+  * nearby support
 
-Categories are defined separately for modularity.
+---
 
-Examples:
+#### `UnitItem`
 
-LengthCategory
-WeightCategory
-TemperatureCategory
-SpeedCategory
-EnergyCategory
-PowerCategory
-DensityCategory
-FrequencyCategory
-FuelEconomyCategory
-AstronomyCategory
+* Symbol (`km`, `HEX`, etc.)
+* Conversion factor / metadata
 
-Each category defines:
+---
 
-Unit names
+## 🔍 Parsing Layer
 
-Symbols
+### `parseConversion(input: String)`
 
-Conversion factors
+Handles NLP input:
 
-Input Parsing
-
-Parsing uses regular expressions.
-
-Supported formats:
-
-12 km
-12kms
-5mph
--40 C
-
-The parser extracts:
-
-numeric value
-unit alias
-
-Aliases are resolved through a mapping table.
-
-Recent Bug Fixes
-Negative Temperature Support
-
-Temperature conversions now correctly support negative values:
-
--40 C
--273.15 C
-Unit Parsing Fix
-
-Inputs such as:
-
-12kms
-5mph
-
-are now correctly parsed.
-
-Nearby Value Generation Fix
-
-Nearby value generation now works correctly with negative values.
-
-Adaptive Launcher Icon Fix
-
-Resolved launcher icon issues by regenerating the icon using Android Studio's Image Asset tool, ensuring proper adaptive icon behavior.
-
-Project Structure
-app
- ├ data
- ├ model
- ├ repository
- │   └ categories
- ├ reference
- ├ ui
- │   └ theme
- ├ util
- └ viewmodel
-Future Improvements
-
-Planned improvements include smarter parsing and additional convenience features.
-
-Natural Language Conversion
-
-Allow input like:
-
+```
 12 km to miles
+FF hex to dec
+```
 
-The parser will automatically detect both source and destination units.
+Strict grammar:
 
-Compound Unit Parsing
+```
+[value] [fromUnit] to [toUnit]
+```
 
-Support inputs such as:
+---
 
-5 ft 3 in
-6'2"
+### `parseInput(input: String)`
 
-Useful for height conversions.
+Handles manual input extraction.
 
-Clipboard Detection
+---
 
-Detect convertible values from clipboard when the app opens.
+## 🧪 Validation Layer
 
-Example:
+---
 
-Clipboard detected: 12 km
-Tap to convert
-More Reference Comparisons
+### Interface
 
-Add contextual comparisons for other categories such as:
+```kotlin
+interface InputValidator {
+    fun validate(input: String, fromUnit: UnitItem): ValidationResult
+}
+```
 
-Speed
+---
 
-Astronomy
+### `ValidationResult`
 
-Energy
+```kotlin
+data class ValidationResult(
+    val isValid: Boolean,
+    val errorMessage: String?
+)
+```
 
-Tech Stack
+---
 
-Kotlin
+### Implementations
 
-Jetpack Compose
+* `DefaultInputValidator` → numeric validation
+* `NumberBaseInputValidator` → BIN / HEX / OCT rules
 
-MVVM architecture
+---
 
-Gradle (Kotlin DSL)
+### Factory
 
-License
+```kotlin
+ValidatorFactory.get(category)
+```
 
-This project is open source for educational and experimentation purposes.
+---
+
+## 🔄 Conversion Layer
+
+---
+
+### Interface
+
+```kotlin
+interface ConversionStrategy {
+    fun convert(value: String, from: UnitItem, to: UnitItem): String
+}
+```
+
+---
+
+### Implementations
+
+* LinearConversionStrategy
+* TemperatureConversionStrategy
+* NumberBaseConversionStrategy
+
+---
+
+### Factory
+
+```kotlin
+ConversionStrategyFactory.getStrategy(category)
+```
+
+---
+
+## 🎨 Formatting Layer
+
+---
+
+### Interface
+
+```kotlin
+interface FormatStrategy {
+    fun format(value: Any): String
+}
+```
+
+---
+
+### Responsibilities
+
+* Decimal formatting
+* Uppercase HEX
+* Future: scientific notation, scaling
+
+---
+
+## 🧠 ViewModel
+
+---
+
+### `onInputChanged(text)`
+
+```kotlin
+state = state.copy(rawInputText = text)
+```
+
+✔ Pure input
+✔ No side effects
+
+---
+
+### `onConvert()`
+
+* Detects NLP vs manual
+* Validates input
+* Applies conversion strategy
+* Formats result
+* Updates state
+
+---
+
+### `handleManual()` / `handleNlp()`
+
+* Use validator + strategy
+* Return `(result, error)`
+
+---
+
+## 🧑‍🎨 UI Responsibilities
+
+---
+
+### UI DOES:
+
+* Capture input
+* Trigger convert
+* Display result
+* Show errors
+
+---
+
+### UI DOES NOT:
+
+* Convert
+* Validate
+* Parse
+
+---
+
+## ⚡ Nearby Conversions
+
+* Generated from base value
+* Uses strategy directly
+* **Does NOT trigger conversion**
+* Acts as input suggestion
+
+---
+
+## 🐞 Bugs Fixed
+
+---
+
+### 🔥 Hidden Re-computation
+
+* Removed all implicit conversion triggers
+* Conversion happens only on button click
+
+---
+
+### 🔥 ResultCard Instability
+
+* Fixed premature updates during typing
+* Result shown only when:
+
+```kotlin
+state.rawInputText == state.parsedValue
+```
+
+---
+
+### 🔥 Number Base Crash
+
+* Fixed invalid radix parsing
+* Added strict validation + safe conversion
+
+---
+
+### 🔥 NLP Partial Parsing
+
+* Enforced strict grammar
+* Removed intermediate NLP states
+
+---
+
+### 🔥 Mixed State Issues
+
+* Separated:
+
+  * `rawInputText`
+  * `parsedValue`
+
+---
+
+### 🔥 Nearby Triggering Conversion
+
+* Removed conversion calls from nearby
+* Now acts as input helper only
+
+---
+
+## 🎯 Current Behavior
+
+| Action        | Behavior           |
+| ------------- | ------------------ |
+| Typing        | updates input only |
+| Convert       | computes           |
+| Invalid input | shows error        |
+| Nearby click  | fills input        |
+| Unit change   | no recompute       |
+
+---
+
+## 🚀 Roadmap
+
+---
+
+### 🔥 Data Size Category
+
+* KB / MB / GB / TB
+* Bit vs Byte
+* Smart scaling
+
+---
+
+### 🔥 Category Scaling
+
+* Top 15 visible categories
+* Unlimited via NLP
+* LRU-based promotion
+
+---
+
+### 🔥 Unit Alias System
+
+* km / kilometer / kms
+* mi / mile / miles
+
+---
+
+### 🔥 Number Base (Final)
+
+* Base-10 normalization
+* Large number support
+
+---
+
+### 🔥 History
+
+* Recent conversions
+* Quick reuse
+
+---
+
+### 🔥 Favorites (Upgrade)
+
+* Pinning
+* Reordering
+* Grouping
+
+---
+
+## 🧠 Key Learnings
+
+* Input handling is the hardest problem
+* Deterministic UX > reactive guessing
+* Validators should own rules + errors
+* UI must never compute logic
+* Strategy pattern scales extremely well
+
+---
+
+## 🎯 Status
+
+| Area         | Status           |
+| ------------ | ---------------- |
+| Architecture | ✅ Solid          |
+| Input Model  | ✅ Stable         |
+| Validation   | ✅ Clean          |
+| Conversion   | ✅ Strategy-based |
+| NLP          | ✅ Stable         |
+| Number Base  | ⚠️ Partial       |
+| Nearby       | ✅ Fixed          |
+| Result UI    | ✅ Stable         |
+
+---
+
+## 🔥 Final Note
+
+This project has evolved into:
+
+> **A behavior-driven, extensible conversion engine with a deterministic UI model**
+
+---
+
+## 📌 Future Vision
+
+* AI-powered input (optional layer, not core)
+* Personalized category ranking
+* Offline-first, ultra-fast conversions
+
+---
+
+If you want next iteration, I can help you:
+
+* polish UI/UX (premium feel)
+* implement Data Size category
+* finalize NumberBaseStrategy
+* prepare Play Store release 🚀
+
