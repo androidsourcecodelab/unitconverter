@@ -11,9 +11,9 @@ object TemperatureCategory {
         iconLabel = "Temp",
         type = ConverterType.TEMPERATURE,
         units = listOf(
-            UnitItem("Celsius", "°C", 1.0),
-            UnitItem("Fahrenheit", "°F", 1.0),
-            UnitItem("Kelvin", "K", 1.0)
+            UnitItem("Celsius", "°C", 1.0,"temperature"),
+            UnitItem("Fahrenheit", "°F", 1.0,"temperature"),
+            UnitItem("Kelvin", "K", 1.0,"temperature")
         ),
         allowNegative = true
     )

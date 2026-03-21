@@ -9,10 +9,18 @@ object PowerCategory {
         name = "Power",
         iconLabel = "Power",
         units = listOf(
-            UnitItem("Watt", "W", 1.0),
-            UnitItem("Kilowatt", "kW", 1000.0),
-            UnitItem("Megawatt", "MW", 1_000_000.0),
-            UnitItem("Horsepower", "hp", 745.699872)
+            UnitItem("Watt", "W", 1.0, "power"),
+
+            UnitItem("Kilowatt", "kW", 1e3, "power"),
+            UnitItem("Megawatt", "MW", 1e6, "power"),
+            UnitItem("Gigawatt", "GW", 1e9, "power"),
+
+            UnitItem("Milliwatt", "mW", 1e-3, "power"),
+
+            UnitItem("Horsepower (metric)", "hp", 735.49875, "power"),
+            UnitItem("Horsepower (mechanical)", "hp_mech", 745.699872, "power"),
+
+            UnitItem("BTU per hour", "BTU/h", 0.29307107, "power")
         )
     )
 }

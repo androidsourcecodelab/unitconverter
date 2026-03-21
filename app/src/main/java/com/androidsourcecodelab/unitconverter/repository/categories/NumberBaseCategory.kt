@@ -11,11 +11,12 @@ object NumberBaseCategory {
         type = ConverterType.NUMBER_BASE,
         iconLabel = "Base",
         units = listOf(
-            UnitItem("Decimal", "DEC", 1.0),
-            UnitItem("Hexadecimal", "HEX", 1.0),
-            UnitItem("Binary", "BIN", 1.0),
-            UnitItem("Octal", "OCT", 1.0)
-        )
+            UnitItem("Binary", "BIN", 2.0, "number_base"),
+            UnitItem("Octal", "OCT", 8.0, "number_base"),
+            UnitItem("Decimal", "DEC", 10.0, "number_base"),
+            UnitItem("Hexadecimal", "HEX", 16.0, "number_base")
+        ),
+        supportsNearby = false
     )
 
 }
