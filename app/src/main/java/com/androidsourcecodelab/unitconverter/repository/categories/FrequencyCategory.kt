@@ -15,7 +15,14 @@ object FrequencyCategory {
             UnitItem("Megahertz", "MHz", 1e6, "frequency"),
             UnitItem("Gigahertz", "GHz", 1e9, "frequency"),
 
+            // 🔥 Add this (very common in signals)
+            UnitItem("Millihertz", "mHz", 1e-3, "frequency"),
+
+            // Rotational
             UnitItem("Revolutions per minute", "rpm", 1.0 / 60.0, "frequency"),
+            UnitItem("Revolutions per second", "rps", 1.0, "frequency"),
+
+            // Angular
             UnitItem("Radians per second", "rad/s", 1.0 / (2 * Math.PI), "frequency")
         )
     )
