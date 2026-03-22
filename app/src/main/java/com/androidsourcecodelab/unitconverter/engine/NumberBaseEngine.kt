@@ -1,16 +1,20 @@
 package com.androidsourcecodelab.unitconverter.engine
 
+import java.math.BigInteger
+
 object NumberBaseEngine {
 
     fun convert(value: String, from: String, to: String): String {
 
         return try {
 
+            val normalized = value.trim()
+
             val base10 = when (from) {
-                "BIN" -> value.toLong(2)
-                "OCT" -> value.toLong(8)
-                "DEC" -> value.toLong(10)
-                "HEX" -> value.toLong(16)
+                "BIN" -> BigInteger(normalized, 2)
+                "OCT" -> BigInteger(normalized, 8)
+                "DEC" -> BigInteger(normalized, 10)
+                "HEX" -> BigInteger(normalized, 16)
                 else -> return "Invalid"
             }
 
@@ -23,8 +27,7 @@ object NumberBaseEngine {
             }
 
         } catch (e: Exception) {
-            "Invalid"   // 🔥 NEVER crash
+            "Invalid"
         }
     }
-
 }

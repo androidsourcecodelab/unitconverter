@@ -6,69 +6,6 @@ import com.androidsourcecodelab.unitconverter.model.UnitItem
 
 object UnitAliasResolver {
 
-    private val aliases = mapOf(
-
-        // Length
-        "km" to "km",
-        "kms" to "km",
-        "kilometer" to "km",
-        "kilometers" to "km",
-        "kilometre" to "km",
-        "kilometres" to "km",
-
-        "m" to "m",
-        "meter" to "m",
-        "meters" to "m",
-
-        "nm" to "nm",
-        "nanometer" to "nm",
-        "nanometers" to "nm",
-
-        "mi" to "mi",
-        "mile" to "mi",
-        "miles" to "mi",
-
-        // Mass
-        "kg" to "kg",
-        "kgs" to "kg",
-        "kilogram" to "kg",
-        "kilograms" to "kg",
-
-        "lb" to "lb",
-        "pound" to "lb",
-        "pounds" to "lb",
-
-        "bin" to "BIN",
-        "binary" to "BIN",
-
-
-        // number base
-
-        "oct" to "OCT",
-        "octal" to "OCT",
-
-        "dec" to "DEC",
-        "decimal" to "DEC",
-
-        "hex" to "HEX",
-        "hexadecimal" to "HEX",
-    )
-
-    fun parseInput(text: String): Pair<String, String?> {
-
-        val cleaned = text.trim().lowercase()
-
-        val parts = cleaned.split("\\s+".toRegex())
-
-        val numberPart = parts.getOrNull(0) ?: ""
-        val unitPart = parts.getOrNull(1)
-
-        val resolved = unitPart?.let { aliases[it] }
-
-        return Pair(numberPart, resolved)
-    }
-
-
 
     data class ParsedCommand(
         val rawInput: String,
@@ -77,6 +14,7 @@ object UnitAliasResolver {
         val toUnit: UnitItem,
         val category: UnitCategory
     )
+
 
     fun parseConversion(input: String): ParsedCommand? {
 
@@ -91,11 +29,15 @@ object UnitAliasResolver {
         val toIndex = tokens.indexOf("to")
         if (toIndex == -1 || toIndex < 2 || toIndex >= tokens.size - 1) return null
 
-        val fromTokenRaw = tokens[1]
-        val toTokenRaw = tokens[toIndex + 1]
 
-        val fromToken = UnitAliasResolver.normalize(fromTokenRaw) ?: return null
-        val toToken = UnitAliasResolver.normalize(toTokenRaw) ?: return null
+
+        //val fromToken = UnitAliasResolver.normalize(fromTokenRaw) ?: return null
+        val (fromToken, consumed1) = AliasResolver.normalize(tokens, 1) ?: return null
+
+        val toStartIndex = 1 + consumed1 + 1 // skip "to"
+
+        val (toToken, _) = AliasResolver.normalize(tokens, toStartIndex) ?: return null
+        //val toToken = UnitAliasResolver.normalize(toTokenRaw) ?: return null
 
         val fromPair = UnitRepository.findUnitAcrossCategories(fromToken)
         val toPair = UnitRepository.findUnitAcrossCategories(toToken)
@@ -116,15 +58,7 @@ object UnitAliasResolver {
         )
     }
 
-    fun normalize(word: String?): String? {
-        if (word == null) return null
 
-        val lower = word.lowercase()
-
-        return aliases[lower]
-            ?: aliases[lower.removeSuffix("s")]
-            ?: lower
-    }
 
 
 

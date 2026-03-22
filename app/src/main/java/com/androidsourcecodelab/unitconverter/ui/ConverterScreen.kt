@@ -98,7 +98,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                         unfocusedContainerColor = Color.White
                     ),
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Decimal
+                        keyboardType = KeyboardType.Ascii
                     ),
                     trailingIcon = {
                         if (viewModel.state.rawInputText.isNotEmpty()) {
