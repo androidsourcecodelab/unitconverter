@@ -1,447 +1,287 @@
-Here’s a **clean, GitHub-ready README**—polished, structured, and ready to drop into your repo (`README.md`).
+# Unit Converter (v1.1)
+
+A modern Android unit converter built with **Kotlin + Jetpack Compose**, featuring **NLP-based input**, **dynamic category management (LRU)**, and a scalable architecture for adding new units and aliases.
 
 ---
 
-# 📱 Unit Converter
+## 🚀 Key Features
 
-A **modern, extensible unit converter** built with **Kotlin + Jetpack Compose**, designed using **Clean Architecture**, **Strategy Pattern**, and a **deterministic execution model**.
+### 🧠 Natural Language Input (NLP)
 
----
+* Supports inputs like:
 
-## ✨ Features
+  * `10 km to m`
+  * `60 rpm to hz`
+  * `10 mb to kb`
+* Multi-token parsing:
 
-* 🔢 Manual conversion (numeric input)
-* 🧠 NLP-based conversion (`12 km to miles`)
-* ⚙️ Strategy-based conversion engine
-* ✅ Validator-driven input system
-* 🎯 Deterministic UX (no hidden computation)
-* ⚡ Quick nearby conversions
-* ⭐ Favorites support
-* 📋 Copy to clipboard
+  * `square meter`
+  * `btu per hour`
+  * `revolutions per minute`
 
 ---
 
-## 🧭 Philosophy
+### 🔄 Dynamic Category System (LRU-based)
 
-> **UI is dumb. Logic is pluggable. Execution is explicit.**
+* Only **15 categories visible at a time**
+* Hidden categories automatically surface when used via NLP
+* Least Recently Used (LRU) category gets evicted
+* Fully persisted across app restarts
 
-* No auto-conversion while typing
-* No hidden recomputation
-* No ambiguous parsing
+---
+
+### ⭐ Favorites Support
+
+* Favorite conversions can restore hidden categories
+* Automatically re-added to visible list via LRU
+* Works seamlessly with dynamic category system
+
+---
+
+### 🧩 Modular Alias System
+
+* Each category has its own alias provider
+* Supports:
+
+  * abbreviations (`km`, `kg`)
+  * full names (`kilometer`)
+  * multi-word inputs (`square meter`, `btu per hour`)
+* Easily extensible
+
+---
+
+### 🧪 Validation Engine
+
+* Category-specific validation rules
+* Example:
+
+  * Data Size → only whole numbers
+* Clean separation from UI and parsing
+
+---
+
+### 🎯 Clean Result Formatting
+
+* Removes unnecessary `.0`
+
+  * `1000.0 → 1000`
+* Trims trailing zeros
+
+  * `1000.50 → 1000.5`
+* Supports scientific notation for extreme values
+* Works even when engine returns `String`
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-User Input (UI)
-        ↓
-ViewModel (orchestration)
-        ↓
-Parser (NLP / manual)
-        ↓
-Validator (category rules)
-        ↓
-Conversion Strategy
-        ↓
-Format Strategy
-        ↓
-UI Rendering
+Input
+  ↓
+Parser (NLP / Manual)
+  ↓
+Validator (category-based)
+  ↓
+Conversion Engine (pure logic)
+  ↓
+Formatter (clean output)
+  ↓
+ViewModel State
+  ↓
+UI (Compose)
 ```
 
 ---
 
-## 🧱 Core Components
+## 📦 Core Components
+
+### 🔹 Parser
+
+* `UnitAliasResolver`
+* Token-based parsing with multi-word support
 
 ---
 
-### 📦 Models
+### 🔹 Alias Providers
 
-#### `UiState`
+* Category-specific alias resolution
+* Examples:
 
-```kotlin
-data class UiState(
-    val rawInputText: String,
-    val parsedValue: String,
-    val result: String,
-    val fromUnit: UnitItem?,
-    val toUnit: UnitItem?,
-    val category: UnitCategory?,
-    val parsedCommand: ParsedCommand?,
-    val errorMessage: String?
-)
-```
+  * `LengthAliasProvider`
+  * `AreaAliasProvider`
+  * `PowerAliasProvider`
+  * `FrequencyAliasProvider`
 
 ---
 
-#### `ParsedCommand`
+### 🔹 Conversion Engine
 
-```kotlin
-data class ParsedCommand(
-    val rawInput: String,
-    val value: String,
-    val fromUnit: UnitItem,
-    val toUnit: UnitItem,
-    val category: UnitCategory
-)
-```
+* Strategy-based:
+
+  * `LinearConversionStrategy`
+  * `NumberBaseStrategy`
+* Engine returns raw values (String/Double)
 
 ---
 
-#### `UnitCategory`
+### 🔹 Validator System
 
-* Defines:
-
-  * converter type (LINEAR / TEMPERATURE / NUMBER_BASE)
-  * supported units
-  * nearby support
+* `InputValidator`
+* `ValidatorFactory`
+* Category-driven validation using `ConverterType`
 
 ---
 
-#### `UnitItem`
+### 🔹 Formatter
 
-* Symbol (`km`, `HEX`, etc.)
-* Conversion factor / metadata
+* `DefaultFormatStrategy`
+* Handles:
 
----
-
-## 🔍 Parsing Layer
-
-### `parseConversion(input: String)`
-
-Handles NLP input:
-
-```
-12 km to miles
-FF hex to dec
-```
-
-Strict grammar:
-
-```
-[value] [fromUnit] to [toUnit]
-```
+  * numeric cleanup
+  * scientific formatting
+  * string passthrough
 
 ---
 
-### `parseInput(input: String)`
+### 🔹 Category Management (LRU)
 
-Handles manual input extraction.
+* `CategoryManager`
+* Responsibilities:
 
----
-
-## 🧪 Validation Layer
-
----
-
-### Interface
-
-```kotlin
-interface InputValidator {
-    fun validate(input: String, fromUnit: UnitItem): ValidationResult
-}
-```
+  * track usage
+  * evict least used
+  * persist state
+  * restore on launch
 
 ---
 
-### `ValidationResult`
+### 🔹 Repository
 
-```kotlin
-data class ValidationResult(
-    val isValid: Boolean,
-    val errorMessage: String?
-)
-```
+* `UnitRepository`
 
----
-
-### Implementations
-
-* `DefaultInputValidator` → numeric validation
-* `NumberBaseInputValidator` → BIN / HEX / OCT rules
+  * `allCategories`
+  * `defaultCategories`
+  * lookup helpers
 
 ---
 
-### Factory
+### 🔹 ViewModel
 
-```kotlin
-ValidatorFactory.get(category)
-```
+* Single source of truth for UI state
+* Handles:
 
----
-
-## 🔄 Conversion Layer
-
----
-
-### Interface
-
-```kotlin
-interface ConversionStrategy {
-    fun convert(value: String, from: UnitItem, to: UnitItem): String
-}
-```
+  * NLP + manual modes
+  * category switching
+  * formatting + validation integration
 
 ---
 
-### Implementations
+## 📚 Supported Categories (v1.1)
 
-* LinearConversionStrategy
-* TemperatureConversionStrategy
-* NumberBaseConversionStrategy
-
----
-
-### Factory
-
-```kotlin
-ConversionStrategyFactory.getStrategy(category)
-```
+* Length
+* Weight
+* Area
+* Volume
+* Speed
+* Frequency
+* Power
+* Data Size
+* Number Base
 
 ---
 
-## 🎨 Formatting Layer
+## ⚙️ Special Handling
+
+### 🗄️ Data Size
+
+* Only integer input allowed
+* Prevents invalid fractional storage values
 
 ---
 
-### Interface
+### 🔢 Number Base
 
-```kotlin
-interface FormatStrategy {
-    fun format(value: Any): String
-}
-```
+* Returns string results (BIN, HEX, DEC)
+* Bypasses numeric formatting
 
 ---
 
-### Responsibilities
+## 🧠 Design Principles
 
-* Decimal formatting
-* Uppercase HEX
-* Future: scientific notation, scaling
-
----
-
-## 🧠 ViewModel
+* Separation of concerns
+* Strategy pattern for extensibility
+* Category-driven behavior (not unit-driven)
+* Minimal coupling between layers
+* UI fully state-driven
 
 ---
 
-### `onInputChanged(text)`
+## 🚧 Known Limitations (v1.1)
 
-```kotlin
-state = state.copy(rawInputText = text)
-```
-
-✔ Pure input
-✔ No side effects
+* Scientific notation not user-configurable
+* Limited number of categories (expanding in v2)
+* No unit grouping or search UI yet
+* No rounding/precision controls
 
 ---
 
-### `onConvert()`
+## 🛣️ Roadmap (v2)
 
-* Detects NLP vs manual
-* Validates input
-* Applies conversion strategy
-* Formats result
-* Updates state
+### 🎨 UI Improvements
 
----
-
-### `handleManual()` / `handleNlp()`
-
-* Use validator + strategy
-* Return `(result, error)`
+* Better category discovery UI
+* Animations for LRU swaps
+* Favorites UI enhancements
 
 ---
 
-## 🧑‍🎨 UI Responsibilities
+### 📦 More Categories
+
+* Time
+* Temperature
+* Pressure
+* Energy
+* Power extensions
+* Currency (API-based)
 
 ---
 
-### UI DOES:
+### 🧠 NLP Expansion
 
-* Capture input
-* Trigger convert
-* Display result
-* Show errors
-
----
-
-### UI DOES NOT:
-
-* Convert
-* Validate
-* Parse
+* More aliases
+* Better error hints
+* Partial NLP support
 
 ---
 
-## ⚡ Nearby Conversions
+### ⚙️ Formatting Enhancements
 
-* Generated from base value
-* Uses strategy directly
-* **Does NOT trigger conversion**
-* Acts as input suggestion
-
----
-
-## 🐞 Bugs Fixed
+* User-configurable precision
+* Toggle scientific notation
+* Human-readable formats (e.g., 1024 → 1 KB)
 
 ---
 
-### 🔥 Hidden Re-computation
+## 🏁 Version
 
-* Removed all implicit conversion triggers
-* Conversion happens only on button click
+**v1.1**
 
----
-
-### 🔥 ResultCard Instability
-
-* Fixed premature updates during typing
-* Result shown only when:
-
-```kotlin
-state.rawInputText == state.parsedValue
-```
+* NLP input support
+* LRU category system
+* Favorites integration
+* Validation + formatting improvements
 
 ---
 
-### 🔥 Number Base Crash
+## 🙌 Final Notes
 
-* Fixed invalid radix parsing
-* Added strict validation + safe conversion
+This version establishes a **scalable foundation** for:
 
----
+* intelligent input handling
+* dynamic UI behavior
+* rapid category expansion
 
-### 🔥 NLP Partial Parsing
-
-* Enforced strict grammar
-* Removed intermediate NLP states
+Future versions will focus on **UX polish and ecosystem expansion**.
 
 ---
-
-### 🔥 Mixed State Issues
-
-* Separated:
-
-  * `rawInputText`
-  * `parsedValue`
-
----
-
-### 🔥 Nearby Triggering Conversion
-
-* Removed conversion calls from nearby
-* Now acts as input helper only
-
----
-
-## 🎯 Current Behavior
-
-| Action        | Behavior           |
-| ------------- | ------------------ |
-| Typing        | updates input only |
-| Convert       | computes           |
-| Invalid input | shows error        |
-| Nearby click  | fills input        |
-| Unit change   | no recompute       |
-
----
-
-## 🚀 Roadmap
-
----
-
-### 🔥 Data Size Category
-
-* KB / MB / GB / TB
-* Bit vs Byte
-* Smart scaling
-
----
-
-### 🔥 Category Scaling
-
-* Top 15 visible categories
-* Unlimited via NLP
-* LRU-based promotion
-
----
-
-### 🔥 Unit Alias System
-
-* km / kilometer / kms
-* mi / mile / miles
-
----
-
-### 🔥 Number Base (Final)
-
-* Base-10 normalization
-* Large number support
-
----
-
-### 🔥 History
-
-* Recent conversions
-* Quick reuse
-
----
-
-### 🔥 Favorites (Upgrade)
-
-* Pinning
-* Reordering
-* Grouping
-
----
-
-## 🧠 Key Learnings
-
-* Input handling is the hardest problem
-* Deterministic UX > reactive guessing
-* Validators should own rules + errors
-* UI must never compute logic
-* Strategy pattern scales extremely well
-
----
-
-## 🎯 Status
-
-| Area         | Status           |
-| ------------ | ---------------- |
-| Architecture | ✅ Solid          |
-| Input Model  | ✅ Stable         |
-| Validation   | ✅ Clean          |
-| Conversion   | ✅ Strategy-based |
-| NLP          | ✅ Stable         |
-| Number Base  | ⚠️ Partial       |
-| Nearby       | ✅ Fixed          |
-| Result UI    | ✅ Stable         |
-
----
-
-## 🔥 Final Note
-
-This project has evolved into:
-
-> **A behavior-driven, extensible conversion engine with a deterministic UI model**
-
----
-
-## 📌 Future Vision
-
-* AI-powered input (optional layer, not core)
-* Personalized category ranking
-* Offline-first, ultra-fast conversions
-
----
-
-If you want next iteration, I can help you:
-
-* polish UI/UX (premium feel)
-* implement Data Size category
-* finalize NumberBaseStrategy
-* prepare Play Store release 🚀
 

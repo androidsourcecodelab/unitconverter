@@ -1,29 +1,46 @@
 package com.androidsourcecodelab.unitconverter.engine.format
 
-import java.text.DecimalFormat
+import kotlin.math.abs
 
 object DefaultFormatStrategy : FormatStrategy {
-
-    private val formatter = DecimalFormat("#.######")
-    private val scientificFormatter = DecimalFormat("0.#####E0")
 
     override fun format(value: Any): String {
 
         return when (value) {
 
-            is Double -> {
-                val abs = kotlin.math.abs(value)
+            is Double -> formatDouble(value)
 
-                if (abs >= 1_000_000 || (abs <= 0.001 && abs != 0.0)) {
-                    scientificFormatter.format(value)
+            is String -> {
+                val number = value.toDoubleOrNull()
+                if (number != null) {
+                    formatDouble(number)   // 🔥 fix here
                 } else {
-                    formatter.format(value)
+                    value   // NumberBase or non-numeric
                 }
             }
 
-            is String -> value
-
             else -> value.toString()
+        }
+    }
+
+    private fun formatDouble(value: Double): String {
+
+        val absValue = abs(value)
+
+        return when {
+            value % 1.0 == 0.0 -> {
+                value.toLong().toString()
+            }
+
+            absValue >= 1_000_000 || (absValue <= 0.000001 && absValue != 0.0) -> {
+                "%.6E".format(value)
+            }
+
+            else -> {
+                "%.10f".format(value)
+                    .trimEnd('0')
+                    .trimEnd('.')
+            }
         }
     }
 }
