@@ -5,6 +5,7 @@ import com.androidsourcecodelab.unitconverter.alias.LengthAliasProvider
 import com.androidsourcecodelab.unitconverter.alias.VolumeAliasProvider
 import com.androidsourcecodelab.unitconverter.alias.WeightAliasProvider
 import com.androidsourcecodelab.unitconverter.engine.alias.AliasProvider
+import com.androidsourcecodelab.unitconverter.engine.alias.DataSizeAliasProvider
 import com.androidsourcecodelab.unitconverter.engine.alias.SpeedAliasProvider
 
 object AliasResolver {
@@ -15,7 +16,8 @@ object AliasResolver {
         WeightAliasProvider(),
         AreaAliasProvider(),
         VolumeAliasProvider(),
-        SpeedAliasProvider()
+        SpeedAliasProvider(),
+        DataSizeAliasProvider()
     )
 
     fun normalize(tokens: List<String>, index: Int): Pair<String, Int>? {

@@ -14,7 +14,7 @@ enum class ConverterType {
     LINEAR,
     NUMBER_BASE,
     TEMPERATURE,
-    STORAGE
+    DATA_SIZE
 }
 
 
