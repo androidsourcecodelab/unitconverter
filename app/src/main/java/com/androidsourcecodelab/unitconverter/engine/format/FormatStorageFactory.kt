@@ -11,8 +11,6 @@ object FormatStrategyFactory {
 
             ConverterType.NUMBER_BASE -> NumberBaseFormatStrategy
 
-            ConverterType.STORAGE -> StorageFormatStrategy
-
             else -> DefaultFormatStrategy
         }
     }

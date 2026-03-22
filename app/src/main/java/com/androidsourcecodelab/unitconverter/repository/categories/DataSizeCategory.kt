@@ -1,5 +1,6 @@
 package com.androidsourcecodelab.unitconverter.repository.categories
 
+import com.androidsourcecodelab.unitconverter.model.ConverterType
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
 
@@ -8,6 +9,8 @@ object DataSizeCategory {
     val category = UnitCategory(
         name = "Data Size",
         iconLabel = "Data",
+        type = ConverterType.DATA_SIZE,
+        supportsNearby = false,
         units = listOf(
             UnitItem("Byte", "B", 1.0, "storage"),
 

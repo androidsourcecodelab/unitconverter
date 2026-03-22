@@ -9,6 +9,9 @@ object ValidatorFactory {
 
         return when (category.type) {
             ConverterType.NUMBER_BASE -> NumberBaseInputValidator
+
+            ConverterType.DATA_SIZE -> DataSizeInputValidator   // 🔥 add this
+
             else -> DefaultInputValidator
         }
     }
