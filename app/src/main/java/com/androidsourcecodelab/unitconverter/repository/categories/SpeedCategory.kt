@@ -16,7 +16,15 @@ object SpeedCategory {
 
             UnitItem("Foot per second", "ft/s", 0.3048, "speed"),
 
-            UnitItem("Knot", "kt", 0.514444, "speed")
+            UnitItem("Knot", "kt", 0.514444, "speed"),
+
+            // 🔥 Add these
+            UnitItem("Centimeter per second", "cm/s", 0.01, "speed"),
+            UnitItem("Millimeter per second", "mm/s", 0.001, "speed"),
+
+            UnitItem("Kilometer per second", "km/s", 1000.0, "speed"),
+
+            UnitItem("Miles per second", "mi/s", 1609.34, "speed")
         )
     )
 

@@ -43,6 +43,46 @@ class ConverterViewModel(application: Application) : ViewModel() {
         )
     }
 
+    enum class InputMode {
+        NLP,
+        MANUAL
+    }
+
+    fun classifyInput(input: String): InputMode {
+        val normalized = input.lowercase()
+
+        return if (normalized.contains("to")) InputMode.NLP
+        else InputMode.MANUAL
+    }
+
+    fun detectNlpHint(input: String): String? {
+        val normalized = input.trim().lowercase()
+
+        // Case 1: ends with "to"
+        if (normalized.endsWith(" to")) {
+            return "Enter target unit after 'to'"
+        }
+
+        // Case 2: contains 'to' but incomplete
+        if (normalized.contains(" to ")) {
+            val tokens = normalized.split("\\s+".toRegex())
+            val toIndex = tokens.indexOf("to")
+
+            if (toIndex == tokens.size - 1) {
+                return "Enter target unit after 'to'"
+            }
+        }
+
+        // Case 3: looks like NLP but incomplete
+        val tokens = normalized.split("\\s+".toRegex())
+        if (tokens.size >= 2 && !normalized.contains(" to ")) {
+            return "Use format: value unit to unit (e.g. 10 km to m)"
+        }
+
+        return null
+    }
+
+
     fun onInputChanged(text: String) {
         state = state.copy(
             rawInputText = text)
@@ -105,6 +145,9 @@ class ConverterViewModel(application: Application) : ViewModel() {
     fun onConvert() {
 
         val input = state.rawInputText.trim()
+        val mode = classifyInput(input)
+
+        Log.d("InputMode", "Detected mode: $mode")
 
         // ---------------------------
         // 1. EMPTY
@@ -114,35 +157,49 @@ class ConverterViewModel(application: Application) : ViewModel() {
                 parsedValue = "",
                 parsedCommand = null,
                 result = "",
-                errorMessage = null   // 🔥 clear error
+                errorMessage = null
             )
             return
         }
 
         // ---------------------------
-        // 2. TRY NLP
+        // 2. NLP MODE (EXPLICIT)
         // ---------------------------
-        val parsed = parseConversion(input)
+        if (mode == InputMode.NLP) {
 
-        if (parsed != null) {
+            when (val result = parseConversion(input)) {
 
-            val (result, error) = handleNlp(parsed)
+                is UnitAliasResolver.ParseResult.Success -> {
+                    val command = result.command
+                    val (output, error) = handleNlp(command)
 
-            state = state.copy(
-                parsedCommand = parsed,
-                parsedValue = parsed.value,
-                category = parsed.category,
-                fromUnit = parsed.fromUnit,
-                toUnit = parsed.toUnit,
-                result = result,
-                errorMessage = error   // 🔥 set error (null if valid)
-            )
+                    state = state.copy(
+                        parsedCommand = command,
+                        parsedValue = command.value,
+                        category = command.category,
+                        fromUnit = command.fromUnit,
+                        toUnit = command.toUnit,
+                        result = output,
+                        errorMessage = error
+                    )
+                }
+
+                is UnitAliasResolver.ParseResult.Error -> {
+
+                    val hint = detectNlpHint(input)
+
+                    state = state.copy(
+                        parsedCommand = null,
+                        result = "",
+                        errorMessage = hint ?: result.message
+                    )
+                }
+            }
 
             return
         }
-
         // ---------------------------
-        // 3. MANUAL
+        // 3. MANUAL MODE
         // ---------------------------
         val (result, error) = handleManual(input)
 
@@ -150,7 +207,7 @@ class ConverterViewModel(application: Application) : ViewModel() {
             parsedCommand = null,
             parsedValue = input,
             result = result,
-            errorMessage = error   // 🔥 set error
+            errorMessage = error
         )
     }
     // ---------------------------
