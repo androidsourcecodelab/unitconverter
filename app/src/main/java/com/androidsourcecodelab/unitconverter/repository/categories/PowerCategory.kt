@@ -16,9 +16,10 @@ object PowerCategory {
             UnitItem("Gigawatt", "GW", 1e9, "power"),
 
             UnitItem("Milliwatt", "mW", 1e-3, "power"),
+            UnitItem("Microwatt", "µW", 1e-6, "power"),   // 🔥 added
 
-            UnitItem("Horsepower (metric)", "hp", 735.49875, "power"),
-            UnitItem("Horsepower (mechanical)", "hp_mech", 745.699872, "power"),
+            UnitItem("Metric horsepower", "hp", 735.49875, "power"),
+            UnitItem("Mechanical horsepower", "hp_mech", 745.699872, "power"),
 
             UnitItem("BTU per hour", "BTU/h", 0.29307107, "power")
         )

@@ -13,6 +13,7 @@ data class UiState(
     val fromUnit: UnitItem? = null,
     val toUnit: UnitItem? = null,
     val category: UnitCategory? = null,
+    val categories: List<UnitCategory> = emptyList(),
 
     val parsedCommand: UnitAliasResolver.ParsedCommand? = null,
     val errorMessage: String? = null   // 🔥 NEW

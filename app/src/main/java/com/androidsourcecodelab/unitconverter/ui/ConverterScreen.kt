@@ -56,7 +56,7 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
         )
 
         CategoryGrid(
-            categories = UnitRepository.categories,   // 🔥 not from VM
+            categories = viewModel.state.categories,   // 🔥 not from VM
             selectedCategory = viewModel.state.category,
             onCategorySelected = { viewModel.setCategory(it) }
         )

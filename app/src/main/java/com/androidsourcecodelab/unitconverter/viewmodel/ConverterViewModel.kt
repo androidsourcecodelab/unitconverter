@@ -1,6 +1,7 @@
 package com.androidsourcecodelab.unitconverter.viewmodel
 
 import android.app.Application
+import com.androidsourcecodelab.unitconverter.manager.CategoryManager
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,11 +16,9 @@ import com.androidsourcecodelab.unitconverter.engine.format.FormatStrategyFactor
 import com.androidsourcecodelab.unitconverter.engine.validation.ValidatorFactory
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
-import com.androidsourcecodelab.unitconverter.reference.ReferenceItem
 import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver
 import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver.parseConversion
 import kotlinx.coroutines.launch
-import java.text.DecimalFormat
 import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log10
@@ -34,7 +33,7 @@ class ConverterViewModel(application: Application) : ViewModel() {
         private set
 
     init {
-        val defaultCategory = UnitRepository.categories.first()
+        val defaultCategory = UnitRepository.defaultCategories.first()
 
         state = state.copy(
             category = defaultCategory,
@@ -171,9 +170,13 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
                 is UnitAliasResolver.ParseResult.Success -> {
                     val command = result.command
+                    // 🔥 CRITICAL LINE
+                    CategoryManager.onCategoryUsed(command.category)
+
                     val (output, error) = handleNlp(command)
 
                     state = state.copy(
+                        categories = CategoryManager.getVisibleCategories(),
                         parsedCommand = command,
                         parsedValue = command.value,
                         category = command.category,
@@ -210,26 +213,6 @@ class ConverterViewModel(application: Application) : ViewModel() {
             errorMessage = error
         )
     }
-    // ---------------------------
-    // 🔁 STRUCTURAL CHANGE
-    // (swap, category, favorites)
-    // ---------------------------
-    fun onStructureChanged(
-        category: UnitCategory? = state.category,
-        from: UnitItem? = state.fromUnit,
-        to: UnitItem? = state.toUnit,
-
-    ) {
-        state = state.copy(
-            category = category,
-            fromUnit = from,
-            toUnit = to,
-            rawInputText = "",     // 🔥 updated field name
-            parsedValue = "",      // 🔥 reset
-            parsedCommand = null,  // 🔥 important (clear NLP state)
-            result = ""            // 🔥 reset
-        )
-    }
 
     fun clearInput() {
         state = state.copy(
@@ -241,19 +224,6 @@ class ConverterViewModel(application: Application) : ViewModel() {
         )
     }
 
-    // ---------------------------
-    // 🔁 SWAP (CLEAN + EXPLICIT)
-    // ---------------------------
-    fun onSwap() {
-        state = state.copy(
-            fromUnit = state.toUnit,
-            toUnit = state.fromUnit,
-            rawInputText = "",     // 🔥 updated
-            parsedValue = "",      // 🔥 reset
-            parsedCommand = null,  // 🔥 reset NLP state
-            result = ""            // 🔥 reset
-        )
-    }
 
 
     private fun handleNlp(parsed: UnitAliasResolver.ParsedCommand): Pair<String, String?> {
@@ -300,30 +270,10 @@ class ConverterViewModel(application: Application) : ViewModel() {
         return formatter.format(resultValue) to null
     }
 
-    val categories = UnitRepository.categories
     private val favoritesRepository =
         FavoritesRepository(application)
     var favorites by mutableStateOf(listOf<FavoriteConversion>())
-    //var favorites = mutableStateListOf<Favorite>()
-    public val formatter = DecimalFormat("#,###.####")
-    private val scientificFormatter =
-        DecimalFormat("0.###E0")
 
-    var inputText by mutableStateOf("")
-    var inputValue by mutableStateOf("") // numeric part
-
-    var input by mutableStateOf("")
-    var result by mutableStateOf("")
-
-    var reference by mutableStateOf<ReferenceItem?>(null)
-        private set
-
-    var isNlpMode by mutableStateOf(false)
-
-    var selectedCategory by mutableStateOf(UnitRepository.categories.first())
-
-    var fromUnit by mutableStateOf(selectedCategory.units.first())
-    var toUnit by mutableStateOf(selectedCategory.units[1])
 
     init {
 
@@ -333,6 +283,18 @@ class ConverterViewModel(application: Application) : ViewModel() {
                 favoritesRepository.loadFavorites()
 
         }
+
+        val categories = CategoryManager.getVisibleCategories()
+
+        val defaultCategory = categories.firstOrNull()
+            ?: UnitRepository.defaultCategories.first()
+
+        state = state.copy(
+            categories = categories,   // 🔥 important
+            category = defaultCategory,
+            fromUnit = defaultCategory.units.firstOrNull(),
+            toUnit = defaultCategory.units.getOrNull(1)
+        )
     }
 
 
@@ -401,17 +363,21 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
     fun setCategory(category: UnitCategory) {
 
+        // 🔥 LRU update
+        CategoryManager.onCategoryUsed(category)
+
         val from = category.units.firstOrNull()
         val to = category.units.getOrNull(1)
 
         state = state.copy(
+            categories = CategoryManager.getVisibleCategories(), // 🔥 refresh
             category = category,
             fromUnit = from,
             toUnit = to,
             rawInputText = "",
-            parsedValue = "",        // 🔥 reset input
-            result = "",           // 🔥 reset result
-            parsedCommand = null   // 🔥 clear NLP state
+            parsedValue = "",
+            result = "",
+            parsedCommand = null
         )
     }
 
@@ -425,33 +391,23 @@ class ConverterViewModel(application: Application) : ViewModel() {
             val (category, fromUnitResult) = fromResult
             val toUnitResult = toResult.second
 
+            // 🔥 1. Update LRU
+            CategoryManager.onCategoryUsed(category)
+
+            // 🔥 2. Update state INCLUDING categories
             state = state.copy(
+                categories = CategoryManager.getVisibleCategories(),   // 🔥 important
                 category = category,
                 fromUnit = fromUnitResult,
                 toUnit = toUnitResult,
-                rawInputText = "",     // 🔥 reset
-                parsedValue = "",      // 🔥 reset
-                parsedCommand = null,  // 🔥 reset
-                result = ""            // 🔥 reset
+                rawInputText = "",
+                parsedValue = "",
+                parsedCommand = null,
+                result = ""
             )
         }
     }
 
 
-    /*fun convertUnified(input: Any) {
 
-        try {
-
-            val strategy = ConversionStrategyFactory.getStrategy(selectedCategory)
-
-            result = strategy.convert(
-                input,
-                fromUnit,
-                toUnit
-            )
-
-        } catch (e: Exception) {
-            result = "Error"
-        }
-    }*/
 }

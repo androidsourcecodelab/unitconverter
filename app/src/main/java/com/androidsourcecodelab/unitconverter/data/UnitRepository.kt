@@ -13,6 +13,7 @@ import com.androidsourcecodelab.unitconverter.repository.categories.FrequencyCat
 import com.androidsourcecodelab.unitconverter.repository.categories.FuelEconomyCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.LengthCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.NumberBaseCategory
+import com.androidsourcecodelab.unitconverter.repository.categories.PowerCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.PressureCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.SpeedCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.TemperatureCategory
@@ -25,7 +26,7 @@ object UnitRepository {
 
 
 
-    val categories = listOf(
+    val defaultCategories = listOf(
         NumberBaseCategory.category,
         LengthCategory.category,
         WeightCategory.category,
@@ -43,12 +44,31 @@ object UnitRepository {
         DataSizeCategory.category
         //FrequencyCategory.category
         //PowerCategory.category
-        )
+    )
 
+    val allCategories = listOf(
+        NumberBaseCategory.category,
+        LengthCategory.category,
+        WeightCategory.category,
+        SpeedCategory.category,
+        AstronomyCategory.category,
+        AreaCategory.category,
+        TemperatureCategory.category,
+        VolumeCategory.category,
+        DurationCategory.category,
+        PressureCategory.category,
+        AngleCategory.category,
+        EnergyCategory.category,
+        FuelEconomyCategory.category,
+        DensityCategory.category,
+        DataSizeCategory.category,
+        FrequencyCategory.category,
+        PowerCategory.category
+    )
 
 
     val unitMap: Map<String, Pair<UnitCategory, UnitItem>> =
-        categories.flatMap { category: UnitCategory ->
+        allCategories.flatMap { category: UnitCategory ->
             category.units.map { unit: UnitItem ->
                 unit.symbol to Pair(category, unit)
             }
@@ -60,10 +80,9 @@ object UnitRepository {
         return unitMap[symbol]
     }
 
-    fun getAllUnits(): List<UnitItem> {
-        return categories.flatMap { it.units }
+    fun getCategoryByName(name: String): UnitCategory? {
+        return allCategories.find { it.name == name }
     }
-
 
 
 }
