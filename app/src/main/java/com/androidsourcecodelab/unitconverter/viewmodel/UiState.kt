@@ -16,5 +16,6 @@ data class UiState(
     val categories: List<UnitCategory> = emptyList(),
 
     val parsedCommand: UnitAliasResolver.ParsedCommand? = null,
-    val errorMessage: String? = null   // 🔥 NEW
+    val errorMessage: String? = null,
+    val suggestions: List<UnitItem> = emptyList()// 🔥 NEW
 )
