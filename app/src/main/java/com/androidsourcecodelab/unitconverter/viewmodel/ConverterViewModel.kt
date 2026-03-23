@@ -16,6 +16,7 @@ import com.androidsourcecodelab.unitconverter.engine.format.FormatStrategyFactor
 import com.androidsourcecodelab.unitconverter.engine.validation.ValidatorFactory
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
+import com.androidsourcecodelab.unitconverter.util.AliasResolver
 import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver
 import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver.parseConversion
 import kotlinx.coroutines.launch
@@ -44,14 +45,55 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
     enum class InputMode {
         NLP,
-        MANUAL
+        MANUAL,
+        PARTIAL_NLP,
+        EMPTY
+    }
+
+    fun extractFromUnit(input: String): Pair<String, UnitItem>? {
+
+        val tokens = input.trim().lowercase().split("\\s+".toRegex())
+
+        if (tokens.size < 2) return null
+
+        val unitToken = tokens[1]
+
+        val normalized = AliasResolver.normalize(listOf(unitToken), 0)?.first
+            ?: return null
+
+        val pair = UnitRepository.findUnitAcrossCategories(normalized)
+            ?: return null
+
+        return normalized to pair.second
+    }
+
+    fun getSuggestions(fromUnit: UnitItem, category: UnitCategory): List<UnitItem> {
+
+        return category.units
+            .filter { it.symbol != fromUnit.symbol }
+            .take(3)   // 🔥 limit
     }
 
     fun classifyInput(input: String): InputMode {
-        val normalized = input.lowercase()
 
-        return if (normalized.contains("to")) InputMode.NLP
-        else InputMode.MANUAL
+        val tokens = input.trim().lowercase().split("\\s+".toRegex())
+
+        return when {
+
+            input.isBlank() -> InputMode.EMPTY
+
+            // 🔥 "10 km"
+            tokens.size == 2 && tokens[0].toDoubleOrNull() != null -> {
+                InputMode.PARTIAL_NLP
+            }
+
+            // 🔥 any presence of "to" as a token → NLP (complete or incomplete)
+            tokens.contains("to") -> {
+                InputMode.NLP
+            }
+
+            else -> InputMode.MANUAL
+        }
     }
 
     fun detectNlpHint(input: String): String? {
@@ -84,7 +126,8 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
     fun onInputChanged(text: String) {
         state = state.copy(
-            rawInputText = text)
+            rawInputText = text,
+            errorMessage = null)
     }
 
     fun onToUnitChanged(newTo: UnitItem) {
@@ -138,6 +181,30 @@ class ConverterViewModel(application: Application) : ViewModel() {
         )
     }
 
+    fun applySuggestion(toUnit: UnitItem) {
+
+        val tokens = state.rawInputText.trim().split("\\s+".toRegex())
+
+        if (tokens.size < 2) return
+
+        val value = tokens[0]
+
+        // 🔥 ALWAYS extract from input (not state)
+        val extracted = extractFromUnit(state.rawInputText) ?: return
+        val fromUnit = extracted.second
+
+        val newInput = "$value ${fromUnit.symbol} to ${toUnit.symbol}"
+
+        state = state.copy(
+            rawInputText = newInput,
+            suggestions = emptyList(),
+            parsedCommand = null
+        )
+
+        onConvert()
+    }
+
+
     // ---------------------------
     // 🔄 CONVERT (ONLY COMPUTE)
     // ---------------------------
@@ -151,13 +218,37 @@ class ConverterViewModel(application: Application) : ViewModel() {
         // ---------------------------
         // 1. EMPTY
         // ---------------------------
-        if (input.isEmpty()) {
+        if (mode == InputMode.EMPTY) {
             state = state.copy(
                 parsedValue = "",
                 parsedCommand = null,
                 result = "",
-                errorMessage = null
+                errorMessage = null,
+                suggestions = emptyList()
             )
+            return
+        }
+
+        if (mode == InputMode.PARTIAL_NLP) {
+
+            val extracted = extractFromUnit(input)
+
+            if (extracted != null) {
+
+                val (_, fromUnit) = extracted
+
+                val category = UnitRepository.findCategoryForUnit(fromUnit)
+
+                if (category != null) {
+                    val suggestions = getSuggestions(fromUnit, category)
+
+                    state = state.copy(
+                        suggestions = suggestions
+                    )
+                }
+
+            }
+
             return
         }
 
@@ -183,7 +274,8 @@ class ConverterViewModel(application: Application) : ViewModel() {
                         fromUnit = command.fromUnit,
                         toUnit = command.toUnit,
                         result = output,
-                        errorMessage = error
+                        errorMessage = error,
+                        suggestions = emptyList()
                     )
                 }
 
@@ -210,7 +302,8 @@ class ConverterViewModel(application: Application) : ViewModel() {
             parsedCommand = null,
             parsedValue = input,
             result = result,
-            errorMessage = error
+            errorMessage = error,
+            suggestions = emptyList()
         )
     }
 

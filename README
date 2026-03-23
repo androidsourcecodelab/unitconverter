@@ -285,3 +285,198 @@ Future versions will focus on **UX polish and ecosystem expansion**.
 
 ---
 
+
+
+## 🚀 Upcoming (v1.2)
+
+### 🧠 Smart Suggestions (Partial NLP)
+
+The app now supports **partial natural language input**, enabling intelligent suggestions as users type.
+
+#### ✨ Examples
+
+* Input: `10 km`
+  → Suggestions: `to m`, `to mi`, `to ft`
+
+* Input: `1 ghz`
+  → Suggestions: `to hz`, `to mhz`
+
+* Tap on a suggestion:
+
+  * Automatically completes the command
+  * Triggers conversion instantly
+  * No need to press “Convert”
+
+---
+
+### ⚙️ Improved Input Handling
+
+The input system has been refined to handle all stages of NLP gracefully:
+
+| Input Type    | Behavior                        |
+| ------------- | ------------------------------- |
+| `10 km`       | Partial NLP → shows suggestions |
+| `10 km to`    | Incomplete NLP → no error       |
+| `10 km to m`  | Complete NLP → converts         |
+| Invalid input | Shows contextual error          |
+
+#### Key Improvements
+
+* Token-based parsing (robust against spacing issues)
+* Clear separation of:
+
+  * Partial NLP
+  * Incomplete NLP
+  * Complete NLP
+* Error messages no longer persist incorrectly
+* State cleanup ensures consistent UI behavior
+
+---
+
+### 🎯 UX Enhancements
+
+* Suggestions appear dynamically below input
+* Suggestions auto-clear after selection or conversion
+* No redundant clicks required
+* Input remains the single source of truth
+
+---
+
+## 🧠 Design Improvements
+
+* Moved toward **input-driven state model**
+* Eliminated reliance on stale ViewModel state (e.g., `fromUnit`)
+* Suggestions and conversions now fully deterministic
+* Cleaner separation between:
+
+  * Parsing
+  * State
+  * UI rendering
+
+---
+
+## 🚧 Future Enhancements
+
+### 🔥 High Priority
+
+* **Time Category**
+* **Temperature Category (non-linear conversion)**
+* **History (recent conversions)**
+* **Better NLP hints in UI**
+
+---
+
+### ⚡ UX Improvements
+
+* Animated suggestion chips
+* Suggestion prioritization (popular units first)
+* Inline result updates (live conversion without button)
+* Improved result display (card-based UI)
+
+---
+
+### 🧠 NLP Enhancements
+
+* Smarter suggestions (context-aware ordering)
+* Partial command completion (`10 km` → auto-fill units)
+* Better error recovery and hints
+
+---
+
+### 📦 Additional Categories
+
+* Pressure
+* Energy
+* Time (extended)
+* Engineering units
+
+---
+
+### 🌍 Future Scope (v2+)
+
+* Currency conversion (API-based)
+* Timezone conversion (separate module)
+* Voice input support
+
+---
+
+## 🏁 Summary
+
+v1.2 focuses on making the app feel **intelligent and responsive**, with:
+
+* smarter input handling
+* reduced friction
+* improved discoverability of NLP features
+
+These changes move the app closer to an **AI-assisted conversion experience**, rather than a traditional unit converter.
+
+
+### 🔄 Hybrid Category Model (NLP + Manual)
+
+The app uses a **hybrid category discovery model** combining traditional UI with NLP-driven expansion.
+
+#### 🎯 Initial State
+
+* App starts with a **curated set of 6–9 categories**
+* Ensures immediate usability via manual mode
+
+#### 🧠 Dynamic Expansion via NLP
+
+* When a user enters a valid NLP query for a hidden category:
+
+  * That category is **automatically surfaced in the UI**
+  * No manual discovery required
+
+#### 🔁 LRU-Based Category Management
+
+* Maximum visible categories: **~15**
+* When limit is reached:
+
+  * Least Recently Used (LRU) category is evicted
+* Ensures UI remains clean and relevant
+
+#### ⭐ Integration with Favorites
+
+* Selecting a favorite conversion:
+
+  * Brings its category back into view
+  * Triggers LRU eviction if needed
+
+---
+
+### 💡 Why This Approach
+
+| Approach                | Trade-off                                |
+| ----------------------- | ---------------------------------------- |
+| Static categories only  | Easy but cluttered                       |
+| NLP-only (0 categories) | Powerful but confusing                   |
+| **Hybrid (chosen)**     | Best balance of usability + intelligence |
+
+---
+
+### 🚀 Benefits
+
+* Immediate usability (manual mode)
+* Discoverability via NLP
+* Personalized UI over time
+* Scales well as more categories are added
+
+---
+
+### 🧠 Design Insight
+
+The UI acts as a **cache of user intent**, not a fixed structure.
+
+* Frequently used categories stay visible
+* Rare ones fade out automatically
+* NLP acts as the **primary discovery mechanism**
+
+---
+
+### 🔮 Future Enhancements
+
+* Smarter LRU (frequency + recency)
+* Category pinning (user-controlled)
+* Recently used category section
+* Adaptive category ordering
+

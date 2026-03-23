@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -23,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -137,6 +139,25 @@ fun ConverterScreen(viewModel: ConverterViewModel) {
                     modifier = Modifier
                         .padding(start = 4.dp)
                 )
+            }
+        }
+
+        // 🔥 ADD THIS BELOW ROW (not inside it)
+        if (viewModel.state.suggestions.isNotEmpty()) {
+
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                items(viewModel.state.suggestions) { unit ->
+
+                    SuggestionChip(
+                        onClick = { viewModel.applySuggestion(unit) },
+                        label = { Text("to ${unit.symbol}") },
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
             }
         }
 

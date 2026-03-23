@@ -80,6 +80,13 @@ object UnitRepository {
         return unitMap[symbol]
     }
 
+    fun findCategoryForUnit(unit: UnitItem): UnitCategory? {
+
+        return allCategories.firstOrNull { category ->
+            category.units.any { it.symbol == unit.symbol }
+        }
+    }
+
     fun getCategoryByName(name: String): UnitCategory? {
         return allCategories.find { it.name == name }
     }
