@@ -35,6 +35,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.androidsourcecodelab.unitconverter.FavoriteConversion
 import com.androidsourcecodelab.unitconverter.engine.format.FormatStrategyFactory
+import com.androidsourcecodelab.unitconverter.model.UnitItem
 import com.androidsourcecodelab.unitconverter.viewmodel.UiState
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -166,15 +167,34 @@ fun ConversionResultScreen(
     }
 }
 
+private fun mergeComponents(
+    components: List<Pair<Double, UnitItem>>
+): List<Pair<Double, UnitItem>> {
+
+    return components
+        .groupBy { it.second } // group by UnitItem
+        .map { (unit, values) ->
+            val total = values.sumOf { it.first }
+            total to unit
+        }
+}
+
 private fun formatComponents(
-    components: List<Pair<Double, String>>
+    components: List<Pair<Double, UnitItem>>
 ): String {
-    return components.joinToString(" ") { (value, unit) ->
+
+    val merged = mergeComponents(components)
+
+    val sorted = merged.sortedByDescending { (_, unit) ->
+        unit.priority
+    }
+
+    return sorted.joinToString(" ") { (value, unit) ->
 
         val displayValue =
-            if (value % 1.0 == 0.0) value.toInt().toString()
+            if (value == value.toInt().toDouble()) value.toInt().toString()
             else value.toString()
 
-        "$displayValue $unit"
+        "$displayValue ${unit.symbol}"
     }
 }
