@@ -1,482 +1,295 @@
-# Unit Converter (v1.1)
+# 🚀 Recent Enhancements (v1.2)
 
-A modern Android unit converter built with **Kotlin + Jetpack Compose**, featuring **NLP-based input**, **dynamic category management (LRU)**, and a scalable architecture for adding new units and aliases.
+## ⏱️ Composite Time Conversion (NEW)
 
----
+We now support **composite time inputs** with explicit target units.
 
-## 🚀 Key Features
+### ✅ Supported Format
 
-### 🧠 Natural Language Input (NLP)
+```
+1 hour 30 minutes to seconds
+30 min 5 sec to min
+1 week 2 seconds to femtoseconds
+```
 
-* Supports inputs like:
+### ❌ Unsupported (by design)
 
-  * `10 km to m`
-  * `60 rpm to hz`
-  * `10 mb to kb`
-* Multi-token parsing:
-
-  * `square meter`
-  * `btu per hour`
-  * `revolutions per minute`
-
----
-
-### 🔄 Dynamic Category System (LRU-based)
-
-* Only **15 categories visible at a time**
-* Hidden categories automatically surface when used via NLP
-* Least Recently Used (LRU) category gets evicted
-* Fully persisted across app restarts
+```
+1 hour 30 minutes          → ❌ Enter the correct format
+1 hour 30 minutes to       → ❌ Enter unit after 'to'
+1:30                       → ❌ Not supported (yet)
+```
 
 ---
 
-### ⭐ Favorites Support
+## 🧠 Key Design Principles
 
-* Favorite conversions can restore hidden categories
-* Automatically re-added to visible list via LRU
-* Works seamlessly with dynamic category system
+### 1. Strict Input Structure
+
+Composite inputs must follow:
+
+```
+<number unit> <number unit> ... to <target unit>
+```
+
+This ensures:
+
+* Deterministic parsing
+* No ambiguity
+* No reliance on NLP guessing
 
 ---
 
-### 🧩 Modular Alias System
+### 2. Engine-Driven Logic
 
-* Each category has its own alias provider
-* Supports:
+All intelligence resides in the **engine layer**, not ViewModel or UI.
 
-  * abbreviations (`km`, `kg`)
-  * full names (`kilometer`)
-  * multi-word inputs (`square meter`, `btu per hour`)
+| Layer     | Responsibility                     |
+| --------- | ---------------------------------- |
+| Engine    | Parsing, normalization, conversion |
+| ViewModel | State orchestration                |
+| UI        | Rendering only                     |
+
+---
+
+### 3. Structured Representation
+
+Composite inputs are internally stored as:
+
+```
+[(1, "week"), (2, "s")]
+```
+
+This enables:
+
+* Accurate computation
+* Clean display formatting
+
+---
+
+### 4. Display Strategy
+
+Composite inputs preserve original structure:
+
+```
+1 week 2 s = 604802 s
+1 week 2 s = 6.04802 × 10^20 fs
+```
+
+✔ Avoids awkward representations like:
+
+```
+1.0000033 week ❌
+```
+
+---
+
+## 🔢 Scientific Formatting Improvements
+
+Large/small numbers are now safely handled:
+
+```
+6.04802 × 10^20 fs
+```
+
+### Fixes included:
+
+* Prevented `Long` overflow (`Long.MAX_VALUE`)
+* Introduced scientific formatting
+* Trimmed unnecessary precision
+
+---
+
+## 🧩 Architecture Improvements
+
+### 1. Data-Driven Unit System
+
+* All conversions rely on `UnitItem.factor`
+* No hardcoded logic
 * Easily extensible
 
 ---
 
-### 🧪 Validation Engine
+### 2. Priority-Based Unit Selection
 
-* Category-specific validation rules
-* Example:
+Units can define priority for:
 
-  * Data Size → only whole numbers
-* Clean separation from UI and parsing
-
----
-
-### 🎯 Clean Result Formatting
-
-* Removes unnecessary `.0`
-
-  * `1000.0 → 1000`
-* Trims trailing zeros
-
-  * `1000.50 → 1000.5`
-* Supports scientific notation for extreme values
-* Works even when engine returns `String`
+* Future composite categories
+* Smart representation
 
 ---
 
-## 🏗️ Architecture
+### 3. Repository Enhancements
+
+Added:
+
+```kotlin
+getUnitItemBySymbol(symbol: String)
+getCategoryByUnitSymbol(symbol: String)
+```
+
+These enable:
+
+* Faster lookups
+* Cleaner engine logic
+* Better NLP support
+
+---
+
+## ⚠️ Known Issues / Improvements
+
+### 1. `10 km` UX Behavior (To Be Fixed)
+
+#### Current Behavior:
+
+* If category ≠ Length → suggestions shown ✅
+* If category = Length → still inconsistent ❌
+
+#### Expected Behavior:
+
+```
+If category == Length:
+    "10 km" → auto-convert using current target unit
+
+Else:
+    show suggestions
+```
+
+👉 This will improve:
+
+* User flow
+* Context-aware behavior
+* Reduce unnecessary suggestions
+
+---
+
+### 2. Composite State Reset
+
+New state fields introduced:
+
+* `isComposite`
+* `compositeComponents`
+
+These must be reset in all non-composite flows.
+
+#### Risk:
+
+```
+Composite → Simple input
+→ UI may still show composite format ❌
+```
+
+#### Fix Strategy:
+
+Ensure reset in:
+
+* Manual mode
+* NLP / Partial NLP
+* Error states
+
+---
+
+## 🧪 Stability Notes
+
+Composite feature has been tested for:
+
+* Mixed units (`week + seconds`)
+* Extreme values (femtoseconds)
+* Scientific formatting
+* Error handling
+
+Some edge cases may still exist due to:
+
+* New state additions
+* Multi-path flows
+
+---
+
+## 🔮 Upcoming Enhancements
+
+### 1. 📏 Composite Length Conversion
+
+Planned support:
+
+```
+1 m 20 cm to mm
+2 km 300 m to cm
+```
+
+This will reuse:
+
+* Same preprocessing pipeline
+* Same architecture
+* Minimal new code (new command only)
+
+---
+
+### 2. 🧠 Expanded Alias Support
+
+Add more natural inputs:
+
+```
+meters → m
+kilometers → km
+secs → s
+```
+
+---
+
+### 3. ⏱️ hh:mm:ss Support (Later)
+
+```
+1:30:05 → seconds
+```
+
+Deferred to keep current system stable.
+
+---
+
+### 4. 🔁 Reverse Formatting
+
+```
+5400 s → 1 hr 30 min
+```
+
+Will significantly improve UX.
+
+---
+
+## 🧱 Architecture Summary
 
 ```
 Input
   ↓
-Parser (NLP / Manual)
+PreprocessingPipeline
   ↓
-Validator (category-based)
+Command (e.g., TimeCompositeCommand)
   ↓
-Conversion Engine (pure logic)
+PreprocessResult
   ↓
-Formatter (clean output)
+ViewModel
   ↓
-ViewModel State
-  ↓
-UI (Compose)
+UI
 ```
-
----
-
-## 📦 Core Components
-
-### 🔹 Parser
-
-* `UnitAliasResolver`
-* Token-based parsing with multi-word support
-
----
-
-### 🔹 Alias Providers
-
-* Category-specific alias resolution
-* Examples:
-
-  * `LengthAliasProvider`
-  * `AreaAliasProvider`
-  * `PowerAliasProvider`
-  * `FrequencyAliasProvider`
-
----
-
-### 🔹 Conversion Engine
-
-* Strategy-based:
-
-  * `LinearConversionStrategy`
-  * `NumberBaseStrategy`
-* Engine returns raw values (String/Double)
-
----
-
-### 🔹 Validator System
-
-* `InputValidator`
-* `ValidatorFactory`
-* Category-driven validation using `ConverterType`
-
----
-
-### 🔹 Formatter
-
-* `DefaultFormatStrategy`
-* Handles:
-
-  * numeric cleanup
-  * scientific formatting
-  * string passthrough
-
----
-
-### 🔹 Category Management (LRU)
-
-* `CategoryManager`
-* Responsibilities:
-
-  * track usage
-  * evict least used
-  * persist state
-  * restore on launch
-
----
-
-### 🔹 Repository
-
-* `UnitRepository`
-
-  * `allCategories`
-  * `defaultCategories`
-  * lookup helpers
-
----
-
-### 🔹 ViewModel
-
-* Single source of truth for UI state
-* Handles:
-
-  * NLP + manual modes
-  * category switching
-  * formatting + validation integration
-
----
-
-## 📚 Supported Categories (v1.1)
-
-* Length
-* Weight
-* Area
-* Volume
-* Speed
-* Frequency
-* Power
-* Data Size
-* Number Base
-
----
-
-## ⚙️ Special Handling
-
-### 🗄️ Data Size
-
-* Only integer input allowed
-* Prevents invalid fractional storage values
-
----
-
-### 🔢 Number Base
-
-* Returns string results (BIN, HEX, DEC)
-* Bypasses numeric formatting
-
----
-
-## 🧠 Design Principles
-
-* Separation of concerns
-* Strategy pattern for extensibility
-* Category-driven behavior (not unit-driven)
-* Minimal coupling between layers
-* UI fully state-driven
-
----
-
-## 🚧 Known Limitations (v1.1)
-
-* Scientific notation not user-configurable
-* Limited number of categories (expanding in v2)
-* No unit grouping or search UI yet
-* No rounding/precision controls
-
----
-
-## 🛣️ Roadmap (v2)
-
-### 🎨 UI Improvements
-
-* Better category discovery UI
-* Animations for LRU swaps
-* Favorites UI enhancements
-
----
-
-### 📦 More Categories
-
-* Time
-* Temperature
-* Pressure
-* Energy
-* Power extensions
-* Currency (API-based)
-
----
-
-### 🧠 NLP Expansion
-
-* More aliases
-* Better error hints
-* Partial NLP support
-
----
-
-### ⚙️ Formatting Enhancements
-
-* User-configurable precision
-* Toggle scientific notation
-* Human-readable formats (e.g., 1024 → 1 KB)
-
----
-
-## 🏁 Version
-
-**v1.1**
-
-* NLP input support
-* LRU category system
-* Favorites integration
-* Validation + formatting improvements
-
----
-
-## 🙌 Final Notes
-
-This version establishes a **scalable foundation** for:
-
-* intelligent input handling
-* dynamic UI behavior
-* rapid category expansion
-
-Future versions will focus on **UX polish and ecosystem expansion**.
-
----
-
-
-
-## 🚀 Upcoming (v1.2)
-
-### 🧠 Smart Suggestions (Partial NLP)
-
-The app now supports **partial natural language input**, enabling intelligent suggestions as users type.
-
-#### ✨ Examples
-
-* Input: `10 km`
-  → Suggestions: `to m`, `to mi`, `to ft`
-
-* Input: `1 ghz`
-  → Suggestions: `to hz`, `to mhz`
-
-* Tap on a suggestion:
-
-  * Automatically completes the command
-  * Triggers conversion instantly
-  * No need to press “Convert”
-
----
-
-### ⚙️ Improved Input Handling
-
-The input system has been refined to handle all stages of NLP gracefully:
-
-| Input Type    | Behavior                        |
-| ------------- | ------------------------------- |
-| `10 km`       | Partial NLP → shows suggestions |
-| `10 km to`    | Incomplete NLP → no error       |
-| `10 km to m`  | Complete NLP → converts         |
-| Invalid input | Shows contextual error          |
-
-#### Key Improvements
-
-* Token-based parsing (robust against spacing issues)
-* Clear separation of:
-
-  * Partial NLP
-  * Incomplete NLP
-  * Complete NLP
-* Error messages no longer persist incorrectly
-* State cleanup ensures consistent UI behavior
-
----
-
-### 🎯 UX Enhancements
-
-* Suggestions appear dynamically below input
-* Suggestions auto-clear after selection or conversion
-* No redundant clicks required
-* Input remains the single source of truth
-
----
-
-## 🧠 Design Improvements
-
-* Moved toward **input-driven state model**
-* Eliminated reliance on stale ViewModel state (e.g., `fromUnit`)
-* Suggestions and conversions now fully deterministic
-* Cleaner separation between:
-
-  * Parsing
-  * State
-  * UI rendering
-
----
-
-## 🚧 Future Enhancements
-
-### 🔥 High Priority
-
-* **Time Category**
-* **Temperature Category (non-linear conversion)**
-* **History (recent conversions)**
-* **Better NLP hints in UI**
-
----
-
-### ⚡ UX Improvements
-
-* Animated suggestion chips
-* Suggestion prioritization (popular units first)
-* Inline result updates (live conversion without button)
-* Improved result display (card-based UI)
-
----
-
-### 🧠 NLP Enhancements
-
-* Smarter suggestions (context-aware ordering)
-* Partial command completion (`10 km` → auto-fill units)
-* Better error recovery and hints
-
----
-
-### 📦 Additional Categories
-
-* Pressure
-* Energy
-* Time (extended)
-* Engineering units
-
----
-
-### 🌍 Future Scope (v2+)
-
-* Currency conversion (API-based)
-* Timezone conversion (separate module)
-* Voice input support
 
 ---
 
 ## 🏁 Summary
 
-v1.2 focuses on making the app feel **intelligent and responsive**, with:
+This release introduces:
 
-* smarter input handling
-* reduced friction
-* improved discoverability of NLP features
+* Composite time conversion ✔
+* Scientific-safe formatting ✔
+* Data-driven architecture ✔
+* Clean separation of concerns ✔
 
-These changes move the app closer to an **AI-assisted conversion experience**, rather than a traditional unit converter.
+And sets the foundation for:
 
-
-### 🔄 Hybrid Category Model (NLP + Manual)
-
-The app uses a **hybrid category discovery model** combining traditional UI with NLP-driven expansion.
-
-#### 🎯 Initial State
-
-* App starts with a **curated set of 6–9 categories**
-* Ensures immediate usability via manual mode
-
-#### 🧠 Dynamic Expansion via NLP
-
-* When a user enters a valid NLP query for a hidden category:
-
-  * That category is **automatically surfaced in the UI**
-  * No manual discovery required
-
-#### 🔁 LRU-Based Category Management
-
-* Maximum visible categories: **~15**
-* When limit is reached:
-
-  * Least Recently Used (LRU) category is evicted
-* Ensures UI remains clean and relevant
-
-#### ⭐ Integration with Favorites
-
-* Selecting a favorite conversion:
-
-  * Brings its category back into view
-  * Triggers LRU eviction if needed
+* Composite support across categories
+* Scalable parsing engine
+* Better UX refinement
 
 ---
 
-### 💡 Why This Approach
-
-| Approach                | Trade-off                                |
-| ----------------------- | ---------------------------------------- |
-| Static categories only  | Easy but cluttered                       |
-| NLP-only (0 categories) | Powerful but confusing                   |
-| **Hybrid (chosen)**     | Best balance of usability + intelligence |
-
----
-
-### 🚀 Benefits
-
-* Immediate usability (manual mode)
-* Discoverability via NLP
-* Personalized UI over time
-* Scales well as more categories are added
-
----
-
-### 🧠 Design Insight
-
-The UI acts as a **cache of user intent**, not a fixed structure.
-
-* Frequently used categories stay visible
-* Rare ones fade out automatically
-* NLP acts as the **primary discovery mechanism**
-
----
-
-### 🔮 Future Enhancements
-
-* Smarter LRU (frequency + recency)
-* Category pinning (user-controlled)
-* Recently used category section
-* Adaptive category ordering
+**Status:** Stable with minor UX refinements pending
 

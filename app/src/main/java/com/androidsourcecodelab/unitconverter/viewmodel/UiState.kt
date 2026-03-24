@@ -1,5 +1,6 @@
 package com.androidsourcecodelab.unitconverter.viewmodel
 
+import com.androidsourcecodelab.unitconverter.engine.DisplayMode
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
 import com.androidsourcecodelab.unitconverter.util.UnitAliasResolver
@@ -17,5 +18,7 @@ data class UiState(
 
     val parsedCommand: UnitAliasResolver.ParsedCommand? = null,
     val errorMessage: String? = null,
-    val suggestions: List<UnitItem> = emptyList()// 🔥 NEW
+    val suggestions: List<UnitItem> = emptyList(),
+    val compositeComponents: List<Pair<Double, String>>? = null,
+    val isComposite: Boolean = false
 )
