@@ -311,22 +311,134 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
         if (mode == InputMode.PARTIAL_NLP) {
 
+            val tokens = input.trim().split("\\s+".toRegex())
+
+            // 🔥 Safety check
+            if (tokens.size < 2) {
+                state = state.copy(
+                    result = "",
+                    parsedCommand = null,
+                    suggestions = emptyList(),
+                    errorMessage = "Invalid input",
+                    isComposite = false,
+                    compositeComponents = emptyList()
+                )
+            }
+
+            val valueToken = tokens[0]
+            val unitToken = tokens[1]
+
+            val value = valueToken.toDoubleOrNull()
+
+            // ❌ If value itself invalid → let manual handle later
+            if (value == null) {
+                state = state.copy(
+                    result = "",
+                    parsedCommand = null,
+                    suggestions = emptyList(),
+                    errorMessage = "Invalid input",
+                    isComposite = false,
+                    compositeComponents = emptyList()
+                )
+            }
+
             val extracted = extractFromUnit(input)
 
-            if (extracted != null) {
+            // ❌ Case: invalid unit like "xxx"
+            if (extracted == null) {
 
-                val (_, fromUnit) = extracted
+                state = state.copy(
+                    result = "",
+                    parsedCommand = null,
+                    suggestions = emptyList(),
+                    errorMessage = "Unknown unit: $unitToken",
+                    isComposite = false,
+                    compositeComponents = emptyList()
+                )
 
-                val category = UnitRepository.findCategoryForUnit(fromUnit)
+                return
+            }
 
-                if (category != null) {
-                    val suggestions = getSuggestions(fromUnit, category)
+            else {
+
+                val (normalizedSymbol, fromUnit) = extracted
+                val detectedCategory = UnitRepository.findCategoryForUnit(fromUnit)
+
+                if (detectedCategory == null) {
+
+                    val unitToken = input.substringAfter(" ", "").trim()
 
                     state = state.copy(
-                        suggestions = suggestions
+                        result = "",
+                        parsedCommand = null,
+                        suggestions = emptyList(),
+                        errorMessage = "Unknown unit: $unitToken",
+                        isComposite = false,
+                        compositeComponents = emptyList()
                     )
+
+                    return
                 }
 
+                // ✅ Case 1: Category matches
+                if (detectedCategory == state.category) {
+
+                    val toUnit = state.toUnit
+
+                    // 🔁 Case 1A: Same unit → suggestions instead of useless conversion
+                    if (toUnit != null && toUnit.symbol == fromUnit.symbol) {
+
+                        val suggestions = getSuggestions(fromUnit, detectedCategory)
+
+                        state = state.copy(
+                            suggestions = suggestions,
+                            result = "",
+                            parsedCommand = null,
+                            errorMessage = null,
+                            isComposite = false,
+                            compositeComponents = emptyList()
+                        )
+
+                        return
+                    }
+
+                    // ✅ Extract numeric value safely
+                    val value = input.substringBefore(" ").toDoubleOrNull()
+                        ?: return
+
+                    // 🔥 IMPORTANT: update state BEFORE calling handleManual
+                    state = state.copy(
+                        fromUnit = fromUnit,
+                        rawInputText = value.toString(),
+                        parsedValue = value.toString(),
+                        suggestions = emptyList(),
+                        parsedCommand = null,
+                        isComposite = false,
+                        compositeComponents = emptyList()
+                    )
+
+                    // ✅ Reuse manual pipeline
+                    val (result, error) = handleManual(value.toString())
+
+                    state = state.copy(
+                        result = result,
+                        errorMessage = error
+                    )
+
+                    return
+                }
+
+                // ❗ Case 2: Category mismatch → suggestions
+                val suggestions = getSuggestions(fromUnit, detectedCategory)
+
+                state = state.copy(
+                    suggestions = suggestions,
+                    result = "",
+                    parsedCommand = null,
+                    errorMessage = null,
+                    isComposite = false,
+                    compositeComponents = emptyList()
+                )
             }
 
             return
