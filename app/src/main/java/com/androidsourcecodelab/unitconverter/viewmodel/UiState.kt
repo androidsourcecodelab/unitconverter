@@ -19,6 +19,6 @@ data class UiState(
     val parsedCommand: UnitAliasResolver.ParsedCommand? = null,
     val errorMessage: String? = null,
     val suggestions: List<UnitItem> = emptyList(),
-    val compositeComponents: List<Pair<Double, String>>? = null,
+    val compositeComponents: List<Pair<Double, UnitItem>>? = null,
     val isComposite: Boolean = false
 )

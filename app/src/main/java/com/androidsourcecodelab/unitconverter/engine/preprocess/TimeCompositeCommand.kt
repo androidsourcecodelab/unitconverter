@@ -1,6 +1,8 @@
 package com.androidsourcecodelab.unitconverter.engine.preprocess
 
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
+import com.androidsourcecodelab.unitconverter.model.UnitItem
+import com.androidsourcecodelab.unitconverter.repository.categories.TimeCategory
 import com.androidsourcecodelab.unitconverter.util.AliasResolver
 
 class TimeCompositeCommand(
@@ -8,32 +10,23 @@ class TimeCompositeCommand(
 ) : PreprocessingCommand {
 
     private fun pickHighestUnit(
-        components: List<Pair<Double, String>>
-    ): String {
+        components: List<Pair<Double, UnitItem>>
+    ): UnitItem {
 
         return components
-            .mapNotNull { (_, symbol) ->
-                unitMap[symbol]?.let { symbol }
+            .maxByOrNull { (_, unit) ->
+                unit.priority
             }
-            .maxByOrNull { symbol ->
-                UnitRepository
-                    .getUnitItemBySymbol(symbol)
-                    ?.priority ?: 0
-            }
-            ?: "s"
+            ?.second
+            ?: components.firstOrNull()?.second
+            ?: throw IllegalStateException("No components provided")
     }
-
     private fun convertFromSeconds(
         seconds: Double,
-        unit: String
+        unit: UnitItem
     ): Double {
-
-        val unitItem = UnitRepository.getUnitItemBySymbol(unit)
-            ?: throw IllegalArgumentException("Unsupported unit: $unit")
-
-        return seconds / unitItem.factor
+        return seconds / unit.factor
     }
-
     override fun canHandle(input: String): Boolean {
 
         if (input.contains(":")) return false   // ❌ explicitly NOT supported
@@ -85,7 +78,7 @@ class TimeCompositeCommand(
             // 🔥 Parse only before "to"
             val tokens = allTokens.subList(0, toIndex)
 
-            val components = mutableListOf<Pair<Double, String>>()
+            val components = mutableListOf<Pair<Double, UnitItem>>()
             var totalSeconds = 0.0
             var i = 0
 
@@ -104,7 +97,10 @@ class TimeCompositeCommand(
                 val factor = unitMap[unit]
                     ?: return PreprocessResult.Failure("Unsupported unit: $unit")
 
-                components.add(value to unit)
+                val unitItem = UnitRepository.getUnitItem(TimeCategory.category, unit)
+                    ?: return PreprocessResult.Failure("Invalid unit: $unit")
+
+                components.add(value to unitItem)
                 totalSeconds += value * factor
 
                 i += 1 + consumed
@@ -122,7 +118,7 @@ class TimeCompositeCommand(
             val displayValue = convertFromSeconds(totalSeconds, highestUnit)
             return PreprocessResult.Success(
                 value = displayValue,
-                fromUnit = highestUnit,
+                fromUnit = highestUnit.symbol,
                 toUnit = toUnit,
                 category = timeCategory,
                 components = components
