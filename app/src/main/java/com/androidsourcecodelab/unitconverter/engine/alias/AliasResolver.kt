@@ -9,6 +9,7 @@ import com.androidsourcecodelab.unitconverter.engine.alias.DataSizeAliasProvider
 import com.androidsourcecodelab.unitconverter.engine.alias.FrequencyAliasProvider
 import com.androidsourcecodelab.unitconverter.engine.alias.PowerAliasProvider
 import com.androidsourcecodelab.unitconverter.engine.alias.SpeedAliasProvider
+import com.androidsourcecodelab.unitconverter.engine.alias.TimeAliasProvider
 
 object AliasResolver {
 
@@ -21,7 +22,8 @@ object AliasResolver {
         SpeedAliasProvider(),
         DataSizeAliasProvider(),
         FrequencyAliasProvider(),
-        PowerAliasProvider()
+        PowerAliasProvider(),
+        TimeAliasProvider()
     )
 
     fun normalize(tokens: List<String>, index: Int): Pair<String, Int>? {

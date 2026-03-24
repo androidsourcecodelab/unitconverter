@@ -12,7 +12,10 @@ import com.androidsourcecodelab.unitconverter.FavoriteConversion
 import com.androidsourcecodelab.unitconverter.data.FavoritesRepository
 import com.androidsourcecodelab.unitconverter.data.UnitRepository
 import com.androidsourcecodelab.unitconverter.engine.ConversionStrategyFactory
+import com.androidsourcecodelab.unitconverter.engine.alias.AliasProvider
+import com.androidsourcecodelab.unitconverter.engine.alias.TimeAliasProvider
 import com.androidsourcecodelab.unitconverter.engine.format.FormatStrategyFactory
+import com.androidsourcecodelab.unitconverter.engine.preprocess.PreprocessResult
 import com.androidsourcecodelab.unitconverter.engine.validation.ValidatorFactory
 import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
@@ -24,12 +27,24 @@ import kotlin.math.abs
 import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
+import com.androidsourcecodelab.unitconverter.engine.preprocess.PreprocessingPipeline
+import com.androidsourcecodelab.unitconverter.engine.preprocess.TimeCompositeCommand
 
 class ConverterViewModel(application: Application) : ViewModel() {
     // ---------------------------
     // ✅ SINGLE SOURCE OF TRUTH
     // ---------------------------
 
+    private val preprocessingPipeline = PreprocessingPipeline(
+        listOf(
+            TimeCompositeCommand(
+                unitMap = UnitRepository.getCategoryByName("Time")
+                    ?.units
+                    ?.associate { it.symbol to it.factor }
+                    ?: emptyMap()
+            )
+        )
+    )
     var state by mutableStateOf(UiState())
         private set
 
@@ -148,7 +163,9 @@ class ConverterViewModel(application: Application) : ViewModel() {
             parsedValue = "",
             parsedCommand = null,
             result = "",
-            errorMessage = ""
+            errorMessage = "",
+            isComposite = false,
+            compositeComponents = emptyList()
         )
     }
 
@@ -170,7 +187,9 @@ class ConverterViewModel(application: Application) : ViewModel() {
             rawInputText = "",
             // 🔥 reset
             result = "",
-            parsedCommand = null
+            parsedCommand = null,
+            compositeComponents = emptyList(),
+            isComposite = false
         )
     }
 
@@ -198,11 +217,15 @@ class ConverterViewModel(application: Application) : ViewModel() {
         state = state.copy(
             rawInputText = newInput,
             suggestions = emptyList(),
-            parsedCommand = null
+            parsedCommand = null,
+            isComposite = false,
+            compositeComponents = emptyList()
         )
 
         onConvert()
     }
+
+
 
 
     // ---------------------------
@@ -211,6 +234,61 @@ class ConverterViewModel(application: Application) : ViewModel() {
     fun onConvert() {
 
         val input = state.rawInputText.trim()
+
+// 🔥 NEW: Preprocessing pipeline
+
+        val preprocessResult = preprocessingPipeline.execute(input)
+
+        when (preprocessResult) {
+
+            is PreprocessResult.Success -> {
+
+                val category = preprocessResult.category
+
+                val fromUnitItem = UnitRepository.getUnitItem(category, preprocessResult.fromUnit)
+                val toUnitItem = preprocessResult.toUnit
+                    ?.let { UnitRepository.getUnitItem(category, it) }
+
+                // 🔥 STEP 1: update FULL state context FIRST
+                state = state.copy(
+                    category = category,
+                    fromUnit = fromUnitItem,
+                    toUnit = toUnitItem ?: fromUnitItem,
+                    compositeComponents = preprocessResult.components,
+                    isComposite = true
+                )
+
+                // 🔥 STEP 2: run conversion
+                val (result, error) = handleManualOverride(
+                    value = preprocessResult.value,
+                    fromUnitSymbol = preprocessResult.fromUnit,
+                    toUnitOverride = preprocessResult.toUnit
+                )
+
+                // 🔥 STEP 3: update result
+                state = state.copy(
+                    parsedValue = preprocessResult.value.toString(),
+                    result = result,
+                    errorMessage = error,
+                    suggestions = emptyList(),
+                    parsedCommand = null
+                )
+
+                return
+            }
+
+            is PreprocessResult.Failure -> {
+                state = state.copy(
+                    errorMessage = preprocessResult.message
+                )
+                return
+            }
+
+            PreprocessResult.NotApplicable -> {
+                // continue normal flow
+            }
+        }
+
         val mode = classifyInput(input)
 
         Log.d("InputMode", "Detected mode: $mode")
@@ -224,7 +302,9 @@ class ConverterViewModel(application: Application) : ViewModel() {
                 parsedCommand = null,
                 result = "",
                 errorMessage = null,
-                suggestions = emptyList()
+                suggestions = emptyList(),
+                isComposite = false,
+                compositeComponents = emptyList()
             )
             return
         }
@@ -313,7 +393,10 @@ class ConverterViewModel(application: Application) : ViewModel() {
             parsedValue = "",
             parsedCommand = null,
             result = "",
-            errorMessage = ""
+            errorMessage = "",
+            compositeComponents = emptyList(),
+            isComposite = false
+
         )
     }
 
@@ -335,6 +418,59 @@ class ConverterViewModel(application: Application) : ViewModel() {
             parsed.value,
             parsed.fromUnit,
             parsed.toUnit
+        )
+
+        return formatter.format(resultValue) to null
+    }
+
+    private fun handleManualOverride(
+        value: Double,
+        fromUnitSymbol: String,
+        toUnitOverride: String?
+    ): Pair<String, String?> {
+
+        val category = state.category ?: return "" to null
+
+        // 🔥 Ensure target unit is a proper String
+        val toRaw: String = (toUnitOverride ?: state.toUnit) as? String
+            ?: return "" to "Target unit not selected"
+
+        val fromRaw: String = fromUnitSymbol
+
+        // 🔥 Normalize using AliasResolver (safe usage)
+        val normalizedFromUnit = AliasResolver
+            .normalize(listOf(fromRaw), 0)
+            ?.first
+            ?: fromRaw
+
+        val normalizedToUnit = AliasResolver
+            .normalize(listOf(toRaw), 0)
+            ?.first
+            ?: toRaw
+
+        // 🔥 Resolve to UnitItem
+        val fromUnitItem = UnitRepository.getUnitItem(category, normalizedFromUnit)
+            ?: return "" to "Invalid source unit"
+
+        val toUnitItem = UnitRepository.getUnitItem(category, normalizedToUnit)
+            ?: return "" to "Invalid target unit"
+
+        val input = value.toString()
+
+        val validator = ValidatorFactory.get(category)
+        val validation = validator.validate(input, fromUnitItem)
+
+        if (!validation.isValid) {
+            return "" to validation.errorMessage
+        }
+
+        val strategy = ConversionStrategyFactory.getStrategy(category)
+        val formatter = FormatStrategyFactory.get(category)
+
+        val resultValue = strategy.convert(
+            input,
+            fromUnitItem,
+            toUnitItem
         )
 
         return formatter.format(resultValue) to null

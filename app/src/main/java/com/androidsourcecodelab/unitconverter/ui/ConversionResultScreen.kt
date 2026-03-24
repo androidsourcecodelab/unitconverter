@@ -55,13 +55,15 @@ fun ConversionResultScreen(
 
         val formatter = FormatStrategyFactory.get(category)
 
-
-
-        val formattedInput = state.parsedValue
+        val inputText = if (state.isComposite && state.compositeComponents != null) {
+            formatComponents(state.compositeComponents)
+        } else {
+            "${state.parsedValue} ${from.symbol}"
+        }
 
         val resultText = buildAnnotatedString {
 
-            append("$formattedInput ${from.symbol} = ")
+            append("$inputText = ")
 
             withStyle(
                 style = SpanStyle(fontWeight = FontWeight.Bold)
@@ -161,5 +163,18 @@ fun ConversionResultScreen(
                 }
             }
         }
+    }
+}
+
+private fun formatComponents(
+    components: List<Pair<Double, String>>
+): String {
+    return components.joinToString(" ") { (value, unit) ->
+
+        val displayValue =
+            if (value % 1.0 == 0.0) value.toInt().toString()
+            else value.toString()
+
+        "$displayValue $unit"
     }
 }

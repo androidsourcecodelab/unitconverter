@@ -17,6 +17,7 @@ import com.androidsourcecodelab.unitconverter.repository.categories.PowerCategor
 import com.androidsourcecodelab.unitconverter.repository.categories.PressureCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.SpeedCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.TemperatureCategory
+import com.androidsourcecodelab.unitconverter.repository.categories.TimeCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.VolumeCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.WeightCategory
 
@@ -63,8 +64,20 @@ object UnitRepository {
         DensityCategory.category,
         DataSizeCategory.category,
         FrequencyCategory.category,
-        PowerCategory.category
+        PowerCategory.category,
+        TimeCategory.category
     )
+
+    fun getUnitItem(category: UnitCategory, symbol: String): UnitItem? {
+        return category.units.find { it.symbol == symbol }
+    }
+
+    fun getUnitItemBySymbol(symbol: String): UnitItem? {
+        return allCategories
+            .asSequence()
+            .flatMap { it.units.asSequence() }
+            .firstOrNull { it.symbol == symbol }
+    }
 
 
     val unitMap: Map<String, Pair<UnitCategory, UnitItem>> =

@@ -28,19 +28,35 @@ object DefaultFormatStrategy : FormatStrategy {
         val absValue = abs(value)
 
         return when {
-            value % 1.0 == 0.0 -> {
+
+            // 🔥 Only convert to Long if within safe range
+            value % 1.0 == 0.0 &&
+                    absValue <= Long.MAX_VALUE.toDouble() -> {
                 value.toLong().toString()
             }
 
+            // 🔥 Large OR very small numbers → scientific
             absValue >= 1_000_000 || (absValue <= 0.000001 && absValue != 0.0) -> {
-                "%.6E".format(value)
+                //"%.6E".format(value)
+                formatScientific(value)
             }
 
+            // 🔥 Normal decimal formatting
             else -> {
                 "%.10f".format(value)
                     .trimEnd('0')
                     .trimEnd('.')
             }
         }
+    }
+
+    private fun formatScientific(value: Double): String {
+        val formatted = "%.6E".format(value)
+        val parts = formatted.split("E")
+
+        val mantissa = parts[0].trimEnd('0').trimEnd('.')
+        val exponent = parts[1].replace("+", "")
+
+        return "$mantissa × 10^$exponent"
     }
 }
