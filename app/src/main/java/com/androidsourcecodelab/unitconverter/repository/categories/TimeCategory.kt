@@ -8,6 +8,9 @@ object TimeCategory {
     val category = UnitCategory(
         name = "Time",
         iconLabel = "Time",
+        supportsNearby = false,
+        allowNegative = false,
+        supportsComposite = true,
         units = listOf(
             UnitItem("Femtosecond", "fs", 1e-15, "time", priority = 1),
             UnitItem("Picosecond", "ps", 1e-12, "time", priority = 2),

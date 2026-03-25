@@ -28,7 +28,8 @@ import kotlin.math.floor
 import kotlin.math.log10
 import kotlin.math.pow
 import com.androidsourcecodelab.unitconverter.engine.preprocess.PreprocessingPipeline
-import com.androidsourcecodelab.unitconverter.engine.preprocess.TimeCompositeCommand
+import com.androidsourcecodelab.unitconverter.engine.preprocess.CompositeCommand
+import com.androidsourcecodelab.unitconverter.manager.CategoryManager.onCategoryUsed
 
 class ConverterViewModel(application: Application) : ViewModel() {
     // ---------------------------
@@ -36,15 +37,46 @@ class ConverterViewModel(application: Application) : ViewModel() {
     // ---------------------------
 
     private val preprocessingPipeline = PreprocessingPipeline(
-        listOf(
-            TimeCompositeCommand(
-                unitMap = UnitRepository.getCategoryByName("Time")
-                    ?.units
-                    ?.associate { it.symbol to it.factor }
-                    ?: emptyMap()
-            )
-        )
+        UnitRepository.allCategories
+            .filter { it.supportsComposite }
+            .map { CompositeCommand(it) }
     )
+
+
+
+    private fun detectCategoryFromInput(input: String): UnitCategory? {
+
+        if (!input.contains("to")) return null   // only composite
+
+        val tokens = input.lowercase().split(Regex("\\s+"))
+
+        val matchedCategories = mutableSetOf<UnitCategory>()
+
+        var i = 0
+
+        while (i < tokens.size) {
+
+            val resolved = AliasResolver.normalize(tokens, i)
+
+            if (resolved != null) {
+                val (symbol, consumed) = resolved
+                val category = UnitRepository.getCategoryByUnitSymbol(symbol)
+                if (category != null) {
+                    matchedCategories.add(category)
+                }
+
+                i += consumed
+            } else {
+                i++
+            }
+        }
+
+        return if (matchedCategories.size == 1) {
+            matchedCategories.first()
+        } else {
+            null
+        }
+    }
     var state by mutableStateOf(UiState())
         private set
 
@@ -237,13 +269,30 @@ class ConverterViewModel(application: Application) : ViewModel() {
 
 // 🔥 NEW: Preprocessing pipeline
 
-        val preprocessResult = preprocessingPipeline.execute(input)
+        val detectedCategory = detectCategoryFromInput(input)
 
+        val effectiveCategory =
+            if (detectedCategory?.supportsComposite == true) {
+                detectedCategory
+            } else {
+                null
+            }
+
+        val preprocessResult =
+            if (effectiveCategory != null) {
+                preprocessingPipeline.execute(input, effectiveCategory)
+            } else {
+                PreprocessResult.NotApplicable
+            }
         when (preprocessResult) {
 
             is PreprocessResult.Success -> {
 
                 val category = preprocessResult.category
+
+                if (category != null) {
+                    onCategoryUsed(category)   // 🔥 THIS is the missing link
+                }
 
                 val fromUnitItem = UnitRepository.getUnitItem(category, preprocessResult.fromUnit)
                 val toUnitItem = preprocessResult.toUnit
@@ -252,6 +301,7 @@ class ConverterViewModel(application: Application) : ViewModel() {
                 // 🔥 STEP 1: update FULL state context FIRST
                 state = state.copy(
                     category = category,
+                    categories = CategoryManager.getVisibleCategories(),
                     fromUnit = fromUnitItem,
                     toUnit = toUnitItem ?: fromUnitItem,
                     compositeComponents = preprocessResult.components,

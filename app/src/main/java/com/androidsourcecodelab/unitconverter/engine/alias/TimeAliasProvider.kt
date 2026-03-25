@@ -2,56 +2,56 @@ package com.androidsourcecodelab.unitconverter.engine.alias
 
 class TimeAliasProvider : AliasProvider {
 
-    private val aliases = mapOf(
+        private val aliases = mapOf(
 
-        // Second
-        "s" to "s",
-        "sec" to "s",
-        "second" to "s",
-        "seconds" to "s",
+            // Second
+            "s" to "s",
+            "sec" to "s",
+            "second" to "s",
+            "seconds" to "s",
 
-        // Millisecond
-        "ms" to "ms",
-        "millisecond" to "ms",
+            // Millisecond
+            "ms" to "ms",
+            "millisecond" to "ms",
 
-        // Microsecond
-        "us" to "µs",
-        "µs" to "µs",
-        "microsecond" to "µs",
+            // Microsecond
+            "us" to "µs",
+            "µs" to "µs",
+            "microsecond" to "µs",
 
-        // Nanosecond
-        "ns" to "ns",
-        "nanosecond" to "ns",
+            // Nanosecond
+            "ns" to "ns",
+            "nanosecond" to "ns",
 
-        // Picosecond
-        "ps" to "ps",
-        "picosecond" to "ps",
+            // Picosecond
+            "ps" to "ps",
+            "picosecond" to "ps",
 
-        // Femtosecond
-        "fs" to "fs",
-        "femtosecond" to "fs",
+            // Femtosecond
+            "fs" to "fs",
+            "femtosecond" to "fs",
 
-        // Minute
-        "min" to "min",
-        "mins" to "min",
-        "minute" to "min",
-        "minutes" to "min",
+            // Minute
+            "min" to "min",
+            "mins" to "min",
+            "minute" to "min",
+            "minutes" to "min",
 
-        // Hour
-        "h" to "hr",
-        "hr" to "hr",
-        "hrs" to "hr",
-        "hour" to "hr",
+            // Hour
+            "h" to "hr",
+            "hr" to "hr",
+            "hrs" to "hr",
+            "hour" to "hr",
 
-        // Day
-        "d" to "day",
-        "day" to "day",
+            // Day
+            "d" to "day",
+            "day" to "day",
 
-        // Week
-        "w" to "week",
-        "wk" to "week",
-        "week" to "week"
-    )
+            // Week
+            "w" to "week",
+            "wk" to "week",
+            "week" to "week"
+        )
 
     override fun resolve(input: String): String? {
 

@@ -8,26 +8,31 @@ object LengthCategory {
     val category = UnitCategory(
         name = "Length",
         iconLabel = "Length",
+        supportsComposite = true,
+        allowNegative = false,
         units = listOf(
-            UnitItem("Meter", "m", 1.0, "length"),
 
-            UnitItem("Kilometer", "km", 1e3, "length"),
-            UnitItem("Centimeter", "cm", 1e-2, "length"),
-            UnitItem("Millimeter", "mm", 1e-3, "length"),
-            UnitItem("Micrometer", "µm", 1e-6, "length"),
-            UnitItem("Nanometer", "nm", 1e-9, "length"),
+            // 🔭 Astronomical (largest)
+            UnitItem("Parsec", "pc", 3.0857e16, "length", priority = 14),
+            UnitItem("Light Year", "ly", 9.4607e15, "length", priority = 13),
+            UnitItem("Astronomical Unit", "AU", 1.496e11, "length", priority = 12),
 
-            UnitItem("Mile", "mi", 1609.34, "length"),
-            UnitItem("Yard", "yd", 0.9144, "length"),
-            UnitItem("Foot", "ft", 0.3048, "length"),
-            UnitItem("Inch", "in", 0.0254, "length"),
+            // 🌊 Large terrestrial
+            UnitItem("Nautical Mile", "nmi", 1852.0, "length", priority = 11),
+            UnitItem("Mile", "mi", 1609.34, "length", priority = 10),
 
-            UnitItem("Nautical Mile", "nmi", 1852.0, "length"),
+            // 📏 Metric
+            UnitItem("Kilometer", "km", 1e3, "length", priority = 9),
+            UnitItem("Meter", "m", 1.0, "length", priority = 8),
+            UnitItem("Centimeter", "cm", 1e-2, "length", priority = 7),
+            UnitItem("Millimeter", "mm", 1e-3, "length", priority = 6),
+            UnitItem("Micrometer", "µm", 1e-6, "length", priority = 5),
+            UnitItem("Nanometer", "nm", 1e-9, "length", priority = 4),
 
-            UnitItem("Astronomical Unit", "AU", 1.496e11, "length"),
-            UnitItem("Light Year", "ly", 9.4607e15, "length"),
-            UnitItem("Parsec", "pc", 3.0857e16, "length")
+            // 📐 Imperial small
+            UnitItem("Yard", "yd", 0.9144, "length", priority = 7),
+            UnitItem("Foot", "ft", 0.3048, "length", priority = 6),
+            UnitItem("Inch", "in", 0.0254, "length", priority = 5)
         )
     )
-
 }

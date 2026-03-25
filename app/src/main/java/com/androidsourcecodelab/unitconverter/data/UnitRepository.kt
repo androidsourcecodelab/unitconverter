@@ -7,7 +7,6 @@ import com.androidsourcecodelab.unitconverter.repository.categories.AreaCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.AstronomyCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.DataSizeCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.DensityCategory
-import com.androidsourcecodelab.unitconverter.repository.categories.DurationCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.EnergyCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.FrequencyCategory
 import com.androidsourcecodelab.unitconverter.repository.categories.FuelEconomyCategory
@@ -36,14 +35,13 @@ object UnitRepository {
         AreaCategory.category,
         TemperatureCategory.category,
         VolumeCategory.category,
-        DurationCategory.category,
         PressureCategory.category,
         AngleCategory.category,
         EnergyCategory.category,
         FuelEconomyCategory.category,
         DensityCategory.category,
-        DataSizeCategory.category
-        //FrequencyCategory.category
+        DataSizeCategory.category,
+        FrequencyCategory.category
         //PowerCategory.category
     )
 
@@ -56,7 +54,6 @@ object UnitRepository {
         AreaCategory.category,
         TemperatureCategory.category,
         VolumeCategory.category,
-        DurationCategory.category,
         PressureCategory.category,
         AngleCategory.category,
         EnergyCategory.category,
@@ -72,12 +69,12 @@ object UnitRepository {
         return category.units.find { it.symbol == symbol }
     }
 
-    fun getUnitItemBySymbol(symbol: String): UnitItem? {
-        return allCategories
-            .asSequence()
-            .flatMap { it.units.asSequence() }
-            .firstOrNull { it.symbol == symbol }
+    fun getCategoryByUnitSymbol(symbol: String): UnitCategory? {
+        return allCategories.find { category ->
+            category.units.any { it.symbol == symbol }
+        }
     }
+
 
 
     val unitMap: Map<String, Pair<UnitCategory, UnitItem>> =

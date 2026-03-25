@@ -1,12 +1,11 @@
 package com.androidsourcecodelab.unitconverter.engine.preprocess
 
-import com.androidsourcecodelab.unitconverter.data.UnitRepository
+import com.androidsourcecodelab.unitconverter.model.UnitCategory
 import com.androidsourcecodelab.unitconverter.model.UnitItem
-import com.androidsourcecodelab.unitconverter.repository.categories.TimeCategory
 import com.androidsourcecodelab.unitconverter.util.AliasResolver
 
-class TimeCompositeCommand(
-    private val unitMap: Map<String, Double>
+class CompositeCommand(
+    val category: UnitCategory
 ) : PreprocessingCommand {
 
     private fun pickHighestUnit(
@@ -14,40 +13,60 @@ class TimeCompositeCommand(
     ): UnitItem {
 
         return components
-            .maxByOrNull { (_, unit) ->
-                unit.priority
-            }
+            .maxByOrNull { (_, unit) -> unit.priority }
             ?.second
             ?: components.firstOrNull()?.second
             ?: throw IllegalStateException("No components provided")
     }
-    private fun convertFromSeconds(
-        seconds: Double,
+
+    private fun convertFromBaseUnit(
+        baseValue: Double,
         unit: UnitItem
     ): Double {
-        return seconds / unit.factor
+        return baseValue / unit.factor
     }
+
     override fun canHandle(input: String): Boolean {
 
-        if (input.contains(":")) return false   // ❌ explicitly NOT supported
+        if (input.contains(":")) return false
 
         val tokens = input.lowercase().split(Regex("\\s+"))
-
         val toIndex = tokens.indexOf("to")
 
-        // 🔥 MUST contain "to"
         if (toIndex == -1) return false
 
-        // Must have at least 2 value+unit pairs BEFORE "to"
+        var i = 0
         var count = 0
 
-        for (i in 0 until toIndex - 1) {
-            val value = tokens[i].toDoubleOrNull()
-            val unit = AliasResolver.normalize(tokens, i + 1)?.first
+        while (i < toIndex) {
 
-            if (value != null && unit != null && unitMap.containsKey(unit)) {
-                count++
+            if (i + 1 >= toIndex) break
+
+            val value = tokens[i].toDoubleOrNull()
+
+            if (value == null) {
+                i++                // 🔥 skip invalid token
+                continue
             }
+
+            val resolved = AliasResolver.normalize(tokens, i + 1)
+
+            if (resolved == null) {
+                i++                // 🔥 skip and continue scanning
+                continue
+            }
+
+            val (unitSymbol, consumed) = resolved
+
+            val unitItem = category.units.find { it.symbol == unitSymbol }
+
+            if (unitItem == null) {
+                i++                // 🔥 skip unknown unit
+                continue
+            }
+
+            count++
+            i += 1 + consumed     // move correctly across pair
         }
 
         return count >= 2
@@ -58,28 +77,31 @@ class TimeCompositeCommand(
         return try {
 
             val allTokens = input.lowercase().split(Regex("\\s+"))
-
             val toIndex = allTokens.indexOf("to")
 
-            // ❌ Case 1: No "to"
+            // ❌ No "to"
             if (toIndex == -1) {
                 return PreprocessResult.Failure("Enter the correct format")
             }
 
-            // ❌ Case 2: "to" but no unit
+            // ❌ "to" but no unit
             if (toIndex == allTokens.size - 1) {
                 return PreprocessResult.Failure("Enter unit after 'to'")
             }
 
-            // ✅ Extract target unit
-            val (toUnit, _) = AliasResolver.normalize(allTokens, toIndex + 1)
+            // ✅ Resolve target unit
+            val (toUnitSymbol, _) = AliasResolver.normalize(allTokens, toIndex + 1,category)
                 ?: return PreprocessResult.Failure("Enter unit after 'to'")
 
-            // 🔥 Parse only before "to"
+            val targetUnit = category.units.find { it.symbol == toUnitSymbol }
+                ?: return PreprocessResult.Failure(
+                    "Invalid unit for ${category.name}: $toUnitSymbol"
+                )
+
             val tokens = allTokens.subList(0, toIndex)
 
             val components = mutableListOf<Pair<Double, UnitItem>>()
-            var totalSeconds = 0.0
+            var totalInBase = 0.0
             var i = 0
 
             while (i < tokens.size) {
@@ -87,21 +109,25 @@ class TimeCompositeCommand(
                 if (i + 1 >= tokens.size) {
                     return PreprocessResult.Failure("Enter the correct format <from> to <unit>")
                 }
-
                 val value = tokens[i].toDoubleOrNull()
                     ?: return PreprocessResult.Failure("Enter the correct format <from> to <unit>")
 
-                val (unit, consumed) = AliasResolver.normalize(tokens, i + 1)
+                if (!category.allowNegative && value < 0) {
+                    return PreprocessResult.Failure(
+                        "Negative values are not allowed for ${category.name}"
+                    )
+                }
+
+                val (unitSymbol, consumed) = AliasResolver.normalize(tokens, i + 1)
                     ?: return PreprocessResult.Failure("Enter the correct format")
 
-                val factor = unitMap[unit]
-                    ?: return PreprocessResult.Failure("Unsupported unit: $unit")
-
-                val unitItem = UnitRepository.getUnitItem(TimeCategory.category, unit)
-                    ?: return PreprocessResult.Failure("Invalid unit: $unit")
+                val unitItem = category.units.find { it.symbol == unitSymbol }
+                    ?: return PreprocessResult.Failure(
+                        "Invalid unit for ${category.name}: $unitSymbol"
+                    )
 
                 components.add(value to unitItem)
-                totalSeconds += value * factor
+                totalInBase += value * unitItem.factor
 
                 i += 1 + consumed
             }
@@ -110,17 +136,15 @@ class TimeCompositeCommand(
                 return PreprocessResult.Failure("Enter the correct format")
             }
 
-            val timeCategory = UnitRepository.getCategoryByName("Time")
-                ?: return PreprocessResult.Failure("Time category not available")
-
             val highestUnit = pickHighestUnit(components)
 
-            val displayValue = convertFromSeconds(totalSeconds, highestUnit)
+            val displayValue = convertFromBaseUnit(totalInBase, highestUnit)
+
             return PreprocessResult.Success(
                 value = displayValue,
                 fromUnit = highestUnit.symbol,
-                toUnit = toUnit,
-                category = timeCategory,
+                toUnit = targetUnit.symbol,
+                category = category,
                 components = components
             )
 
