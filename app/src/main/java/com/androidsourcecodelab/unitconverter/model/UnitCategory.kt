@@ -7,7 +7,8 @@ data class UnitCategory(
     val units: List<UnitItem>,
     val type: ConverterType = ConverterType.LINEAR,
     val allowNegative: Boolean = false,
-    val supportsNearby: Boolean = true
+    val supportsNearby: Boolean = true,
+    val supportsComposite: Boolean = false
 )
 
 enum class ConverterType {

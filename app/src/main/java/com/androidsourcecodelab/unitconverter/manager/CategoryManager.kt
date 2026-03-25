@@ -68,6 +68,8 @@ object CategoryManager {
         }
     }
 
+    // Updates LRU cache for visibleCategories.
+    // Caller MUST refresh state (e.g., getVisibleCategories()) to reflect changes in UI.
     fun onCategoryUsed(category: UnitCategory) {
 
         val now = System.currentTimeMillis()
