@@ -1,295 +1,290 @@
-# 🚀 Recent Enhancements (v1.2)
+# 🚀 Unit Converter – v1.2
 
-## ⏱️ Composite Time Conversion (NEW)
+## ⏱️ Composite Conversion (NEW)
 
-We now support **composite time inputs** with explicit target units.
+Supports **multi-unit (composite) inputs** with explicit target units.
 
-### ✅ Supported Format
+### ✅ Supported
 
 ```
 1 hour 30 minutes to seconds
 30 min 5 sec to min
 1 week 2 seconds to femtoseconds
+1 km 20 m to cm
 ```
 
 ### ❌ Unsupported (by design)
 
 ```
-1 hour 30 minutes          → ❌ Enter the correct format
-1 hour 30 minutes to       → ❌ Enter unit after 'to'
-1:30                       → ❌ Not supported (yet)
+1 hour 30 minutes
+1 hour 30 minutes to
+1:30
 ```
 
 ---
 
-## 🧠 Key Design Principles
+## 🧠 Design Principles
 
 ### 1. Strict Input Structure
-
-Composite inputs must follow:
 
 ```
 <number unit> <number unit> ... to <target unit>
 ```
 
-This ensures:
-
 * Deterministic parsing
 * No ambiguity
-* No reliance on NLP guessing
+* No NLP guesswork
 
 ---
 
-### 2. Engine-Driven Logic
+### 2. Clean Architecture
 
-All intelligence resides in the **engine layer**, not ViewModel or UI.
-
-| Layer     | Responsibility                     |
-| --------- | ---------------------------------- |
-| Engine    | Parsing, normalization, conversion |
-| ViewModel | State orchestration                |
-| UI        | Rendering only                     |
+| Layer     | Responsibility                      |
+| --------- | ----------------------------------- |
+| Engine    | Parsing, normalization, aggregation |
+| ViewModel | Final conversion, state management  |
+| UI        | Rendering and interaction           |
 
 ---
 
 ### 3. Structured Representation
 
-Composite inputs are internally stored as:
+Composite inputs are stored as:
 
 ```
-[(1, "week"), (2, "s")]
+[(1, "hr"), (30, "min")]
 ```
-
-This enables:
-
-* Accurate computation
-* Clean display formatting
 
 ---
 
 ### 4. Display Strategy
 
-Composite inputs preserve original structure:
-
 ```
-1 week 2 s = 604802 s
-1 week 2 s = 6.04802 × 10^20 fs
+1 hr 30 min = 5400 s
 ```
 
-✔ Avoids awkward representations like:
-
-```
-1.0000033 week ❌
-```
+✔ Preserves structure
+❌ Avoids awkward decimals like `1.5 hr` (unless explicitly chosen)
 
 ---
 
-## 🔢 Scientific Formatting Improvements
+## 🔢 Scientific Formatting
 
-Large/small numbers are now safely handled:
+Handles extreme values safely:
 
 ```
 6.04802 × 10^20 fs
 ```
 
-### Fixes included:
+Includes:
 
-* Prevented `Long` overflow (`Long.MAX_VALUE`)
-* Introduced scientific formatting
-* Trimmed unnecessary precision
-
----
-
-## 🧩 Architecture Improvements
-
-### 1. Data-Driven Unit System
-
-* All conversions rely on `UnitItem.factor`
-* No hardcoded logic
-* Easily extensible
+* Overflow protection
+* Scientific notation
+* Precision trimming
 
 ---
 
-### 2. Priority-Based Unit Selection
+## 🧩 Architecture Highlights
 
-Units can define priority for:
+### Data-Driven Units
 
-* Future composite categories
-* Smart representation
+* All conversions use `UnitItem.factor`
+* No hardcoded conversions
 
 ---
 
-### 3. Repository Enhancements
+### Priority-Based Units
 
-Added:
+* Determines “highest unit” for normalization
+* Used for clean display formatting
+
+---
+
+### Repository Enhancements
 
 ```kotlin
 getUnitItemBySymbol(symbol: String)
 getCategoryByUnitSymbol(symbol: String)
 ```
 
-These enable:
+---
 
-* Faster lookups
-* Cleaner engine logic
-* Better NLP support
+## 🧠 Engine vs UI Responsibility
+
+### Engine (CompositeCommand)
+
+* Parses composite input
+* Aggregates values
+* Returns value in **highest-priority unit**
+
+Example:
+
+```
+Input: 1 hour 30 min to sec
+Engine Output:
+value = 1.5
+fromUnit = hr
+toUnit = s
+```
 
 ---
 
-## ⚠️ Known Issues / Improvements
+### ViewModel / UI
 
-### 1. `10 km` UX Behavior (To Be Fixed)
-
-#### Current Behavior:
-
-* If category ≠ Length → suggestions shown ✅
-* If category = Length → still inconsistent ❌
-
-#### Expected Behavior:
+* Converts to target unit
+* Formats final output
 
 ```
-If category == Length:
-    "10 km" → auto-convert using current target unit
-
-Else:
-    show suggestions
+1 hr 30 min = 5400 s
 ```
-
-👉 This will improve:
-
-* User flow
-* Context-aware behavior
-* Reduce unnecessary suggestions
 
 ---
 
-### 2. Composite State Reset
+### Why this separation?
 
-New state fields introduced:
+* Preserves structure
+* Avoids precision loss
+* Keeps engine independent of UI
+
+---
+
+## 🧪 CI Integration
+
+Unit tests run automatically on every Pull Request.
+
+### Trigger
+
+* PRs to `main` and `develop`
+
+### Command
+
+```
+./gradlew testDebugUnitTest
+```
+
+### Location
+
+```
+.github/workflows/android-ci.yml
+```
+
+---
+
+## 🧪 Unit Testing
+
+Current coverage includes:
+
+* Composite parsing (Time, Length)
+* `canHandle()` validation
+* Non-composite rejection
+* Mixed-category failure
+
+---
+
+## ⚠️ Known Issues
+
+### `10 km` UX
+
+Needs refinement:
+
+* If category matches → auto-convert
+* Else → show suggestions
+
+---
+
+### Composite State Reset
+
+Ensure reset of:
 
 * `isComposite`
 * `compositeComponents`
 
-These must be reset in all non-composite flows.
-
-#### Risk:
-
-```
-Composite → Simple input
-→ UI may still show composite format ❌
-```
-
-#### Fix Strategy:
-
-Ensure reset in:
-
-* Manual mode
-* NLP / Partial NLP
-* Error states
-
 ---
 
-## 🧪 Stability Notes
+## 🔮 Version 1.3 Roadmap
 
-Composite feature has been tested for:
+### 🔍 Composite Input Discovery
 
-* Mixed units (`week + seconds`)
-* Extreme values (femtoseconds)
-* Scientific formatting
-* Error handling
-
-Some edge cases may still exist due to:
-
-* New state additions
-* Multi-path flows
-
----
-
-## 🔮 Upcoming Enhancements
-
-### 1. 📏 Composite Length Conversion
-
-Planned support:
+Help users discover feature:
 
 ```
-1 m 20 cm to mm
-2 km 300 m to cm
-```
-
-This will reuse:
-
-* Same preprocessing pipeline
-* Same architecture
-* Minimal new code (new command only)
-
----
-
-### 2. 🧠 Expanded Alias Support
-
-Add more natural inputs:
-
-```
-meters → m
-kilometers → km
-secs → s
+Try: 1 hr 30 min to sec
 ```
 
 ---
 
-### 3. ⏱️ hh:mm:ss Support (Later)
+### 🔄 Tap-to-Transform Result
+
+Tap result to cycle:
 
 ```
-1:30:05 → seconds
+5400 s → 1.5 hr → 1 hr 30 min
 ```
-
-Deferred to keep current system stable.
 
 ---
 
-### 4. 🔁 Reverse Formatting
+### 🔁 Reverse Formatting
 
 ```
 5400 s → 1 hr 30 min
+1020 m → 1 km 20 m
 ```
-
-Will significantly improve UX.
 
 ---
 
-## 🧱 Architecture Summary
+### 🎛 Inline Format Toggle
 
 ```
-Input
-  ↓
-PreprocessingPipeline
-  ↓
-Command (e.g., TimeCompositeCommand)
-  ↓
-PreprocessResult
-  ↓
-ViewModel
-  ↓
-UI
+[ Structured | Decimal ]
+```
+
+---
+
+### 📘 Explain Conversion (Differentiator)
+
+```
+1 hr = 3600 s
+30 min = 1800 s
+Total = 5400 s
+```
+
+---
+
+### 🧠 Intelligent Input Feedback
+
+```
+1 km 5 sec → Mixed categories detected
+```
+
+---
+
+### 📌 Category Pinning
+
+* Prevent eviction from LRU
+* Long press to pin
+
+---
+
+### ⚡ Power Input Mode
+
+```
+1h30m
+2km300m
 ```
 
 ---
 
 ## 🏁 Summary
 
-This release introduces:
+v1.2 delivers:
 
-* Composite time conversion ✔
-* Scientific-safe formatting ✔
-* Data-driven architecture ✔
-* Clean separation of concerns ✔
-
-And sets the foundation for:
-
-* Composite support across categories
-* Scalable parsing engine
-* Better UX refinement
+* ✔ Composite conversion engine
+* ✔ Category-aware parsing
+* ✔ Scientific-safe formatting
+* ✔ LRU category system
+* ✔ CI pipeline with automated tests
 
 ---
 
-**Status:** Stable with minor UX refinements pending
+**Status:** Stable and extensible
 
